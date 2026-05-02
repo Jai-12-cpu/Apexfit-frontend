@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111115;--s2:#18181e;--s3:#22222a;--s4:#2c2c36;
+  --lime:#c8ff00;--sky:#38bdf8;--amber:#fbbf24;--rose:#f43f5e;--violet:#a78bfa;
+  --t1:#f1f1f5;--t2:#8888a0;--t3:#44445a;--bd:#2a2a38;
+  --r:10px;--mono:'Fira Mono','Courier New',monospace;--sans:system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--t3);font-weight:500;margin-bottom:14px;font-family:var(--mono)}
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:520px;margin:0 auto}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px;border-bottom:1px solid var(--bd);background:var(--bg)}
+.logo{font-family:var(--mono);font-size:16px;color:var(--lime);letter-spacing:3px}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.pill{background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--t2);font-family:var(--mono)}
+.pill.wk{color:var(--lime)}
+
+/* NAV */
+.nav{display:flex;border-bottom:1px solid var(--bd);background:var(--s1)}
+.nb{flex:1;padding:11px 4px 10px;border:none;background:none;color:var(--t3);font-size:10px;font-family:var(--sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;letter-spacing:.5px}
+.nb svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nb.on{color:var(--lime)}
+.nb:hover:not(.on){color:var(--t2)}
+
+/* SCROLL */
+.content{flex:1;overflow-y:auto;padding-bottom:32px}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin:14px;padding:16px}
+
+/* PLAN */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
+.dc{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;cursor:pointer;transition:border-color .2s}
+.dc:hover:not(.rest){border-color:var(--lime)}
+.dc.now{border-color:var(--lime);background:var(--s2)}
+.dc.done{border-color:var(--t3);opacity:.55;pointer-events:none}
+.dc.rest{opacity:.4;cursor:default}
+.dlbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);font-family:var(--mono);margin-bottom:5px}
+.dc.now .dlbl{color:var(--lime)}
+.dname{font-size:14px;font-weight:600;margin-bottom:3px}
+.dsub{font-size:11px;color:var(--t2);margin-bottom:8px}
+.pbr{background:var(--s3);border-radius:3px;height:3px}
+.pbrf{height:3px;border-radius:3px;background:var(--lime);transition:width .5s}
+
+/* PROGRAM SELECTOR */
+.prog-tabs{display:flex;gap:6px;padding:14px 14px 0;flex-wrap:wrap}
+.ptab{background:var(--s2);border:1px solid var(--bd);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--t2);cursor:pointer;transition:all .2s}
+.ptab.on{background:var(--s3);border-color:var(--lime);color:var(--lime)}
+
+/* SESSION */
+.shdr{padding:18px 14px 10px}
+.back{background:none;border:none;color:var(--t2);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:12px;font-family:var(--sans)}
+.stitle{font-size:20px;font-weight:700;margin-bottom:3px}
+.smeta{font-size:12px;color:var(--t2);display:flex;align-items:center;gap:12px}
+.timer{font-family:var(--mono);color:var(--sky)}
+.ex-wrap{margin:0 14px 10px}
+.exh{display:flex;align-items:center;justify-content:space-between;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r) var(--r) 0 0;border-bottom:none;padding:13px 14px;cursor:default}
+.exn{font-size:14px;font-weight:600}
+.exm{font-size:11px;color:var(--t2);margin-top:2px}
+.exr{text-align:right}
+.exp{font-family:var(--mono);font-size:12px;color:var(--lime)}
+.ext{font-size:10px;color:var(--t3)}
+.sets-body{background:var(--s2);border:1px solid var(--bd);border-radius:0 0 var(--r) var(--r);padding:12px}
+.slbl{display:grid;grid-template-columns:28px 1fr 1fr 60px 34px;gap:6px;margin-bottom:6px}
+.sl{font-size:10px;color:var(--t3);text-align:center;font-family:var(--mono);text-transform:uppercase}
+.sr{display:grid;grid-template-columns:28px 1fr 1fr 60px 34px;gap:6px;align-items:center;margin-bottom:6px}
+.sn{font-size:12px;color:var(--t3);font-family:var(--mono);text-align:center}
+.si{background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:7px;text-align:center;font-size:13px;font-family:var(--mono);color:var(--t1);width:100%;transition:border-color .2s}
+.si:focus{outline:none;border-color:var(--lime)}
+.si.done-i{opacity:.5}
+.rest-inp{background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:7px;text-align:center;font-size:12px;font-family:var(--mono);color:var(--t2);width:100%}
+.chk{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--bd);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;color:transparent}
+.chk.on{background:var(--lime);border-color:var(--lime);color:#000}
+.rest-timer{background:var(--s3);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.rt-label{font-size:12px;color:var(--t2)}
+.rt-val{font-family:var(--mono);font-size:16px;color:var(--sky)}
+.rt-skip{background:none;border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);cursor:pointer}
+.note-row{margin-top:8px}
+.note-inp{width:100%;background:var(--s3);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--t2);font-family:var(--sans);resize:none}
+.note-inp:focus{outline:none;border-color:var(--sky)}
+.cbtn{margin:14px;width:calc(100% - 28px);padding:15px;border:none;border-radius:var(--r);background:var(--lime);color:#000;font-size:14px;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:opacity .2s}
+.cbtn:disabled{opacity:.3;cursor:default}
+.prog-hint{background:var(--s2);border-left:3px solid var(--lime);padding:10px 12px;border-radius:0 6px 6px 0;margin:0 14px 10px;font-size:12px;color:var(--t2)}
+.prog-hint strong{color:var(--lime)}
+
+/* STATS */
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px}
+.sbox{background:var(--s2);border-radius:var(--r);padding:14px;text-align:center}
+.sval{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--lime)}
+.slab{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+/* CHART */
+.mchart{display:flex;align-items:flex-end;gap:4px;height:80px;padding-top:4px;margin-bottom:20px}
+.mbar{flex:1;min-width:0;border-radius:3px 3px 0 0;background:var(--s3);position:relative;transition:height .4s}
+.mbar.hi{background:var(--lime)}
+.blbl{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--t3);font-family:var(--mono);white-space:nowrap}
+
+/* PRs */
+.pr-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--s2);border-radius:8px;margin-bottom:6px}
+.pr-name{font-size:13px;font-weight:600}
+.pr-sub{font-size:10px;color:var(--t3);margin-top:2px}
+.pr-val{font-family:var(--mono);font-size:13px;color:var(--lime)}
+
+/* HISTORY */
+.hi-item{padding:14px;border-bottom:1px solid var(--bd)}
+.hi-date{font-size:10px;color:var(--t3);font-family:var(--mono);margin-bottom:4px}
+.hi-name{font-size:14px;font-weight:600;margin-bottom:6px}
+.hi-tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{background:var(--s2);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--t2)}
+.tag.pr-tag{border:1px solid var(--lime);color:var(--lime)}
+
+/* LIBRARY */
+.ex-detail{padding:14px;border-bottom:1px solid var(--bd)}
+.ex-dl{display:flex;justify-content:space-between;align-items:flex-start}
+.ex-dname{font-size:14px;font-weight:600;margin-bottom:3px}
+.ex-dinfo{font-size:11px;color:var(--t2)}
+.ex-dbadge{background:var(--s2);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--t2);white-space:nowrap}
+.ex-desc{font-size:12px;color:var(--t3);margin-top:6px;line-height:1.5}
+.ex-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ex-stat{background:var(--s3);border-radius:5px;padding:4px 10px;font-size:11px;color:var(--t2);font-family:var(--mono)}
+.cat-hdr{padding:12px 14px 6px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);font-family:var(--mono)}
+.search-wrap{padding:10px 14px}
+.search-inp{width:100%;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--t1);font-family:var(--sans)}
+.search-inp:focus{outline:none;border-color:var(--sky)}
+.filter-row{display:flex;gap:6px;padding:0 14px 10px;flex-wrap:wrap}
+.fb{background:var(--s2);border:1px solid var(--bd);border-radius:16px;padding:4px 12px;font-size:11px;color:var(--t2);cursor:pointer}
+.fb.on{border-color:var(--sky);color:var(--sky)}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 24px;color:var(--t3);font-size:13px}
+
+/* TOAST */
+.toast{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000;font-weight:700;font-size:12px;padding:8px 20px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+textarea{resize:vertical}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<div class="hdr">
+  <div class="logo">APEXFIT</div>
+  <div class="hdr-right">
+    <div class="pill wk" id="wkBadge">Week 1</div>
+    <div class="pill" id="dateBadge"></div>
+  </div>
+</div>
+<div class="nav" id="nav">
+  <button class="nb on" data-tab="plan" onclick="switchTab('plan')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Plan
+  </button>
+  <button class="nb" data-tab="stats" onclick="switchTab('stats')">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Progress
+  </button>
+  <button class="nb" data-tab="history" onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History
+  </button>
+  <button class="nb" data-tab="library" onclick="switchTab('library')">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Library
+  </button>
+</div>
+<div class="content" id="content"></div>
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const PROGRAMS = {
+  strength: {
+    label: 'Strength (PPL)',
+    color: '#c8ff00',
+    days: [
+      {day:'Mon',name:'Push',focus:'Chest · Shoulders · Triceps',exercises:[
+        {n:'Bench Press',s:4,type:'compound'},
+        {n:'Overhead Press',s:4,type:'compound'},
+        {n:'Incline DB Press',s:3,type:'compound'},
+        {n:'Lateral Raise',s:3,type:'isolation'},
+        {n:'Tricep Pushdown',s:3,type:'isolation'},
+      ]},
+      {day:'Tue',name:'Pull',focus:'Back · Biceps · Rear Delts',exercises:[
+        {n:'Deadlift',s:3,type:'compound'},
+        {n:'Barbell Row',s:4,type:'compound'},
+        {n:'Pull-ups',s:3,type:'bodyweight'},
+        {n:'Face Pull',s:3,type:'isolation'},
+        {n:'Bicep Curl',s:3,type:'isolation'},
+      ]},
+      {day:'Wed',name:'Rest',focus:'Active recovery',exercises:[]},
+      {day:'Thu',name:'Legs',focus:'Quads · Hamstrings · Glutes',exercises:[
+        {n:'Squat',s:4,type:'compound'},
+        {n:'Romanian Deadlift',s:3,type:'compound'},
+        {n:'Leg Press',s:3,type:'machine'},
+        {n:'Leg Curl',s:3,type:'machine'},
+        {n:'Calf Raise',s:4,type:'isolation'},
+      ]},
+      {day:'Fri',name:'Upper',focus:'Full upper body',exercises:[
+        {n:'Bench Press',s:4,type:'compound'},
+        {n:'Barbell Row',s:4,type:'compound'},
+        {n:'Overhead Press',s:3,type:'compound'},
+        {n:'Pull-ups',s:3,type:'bodyweight'},
+        {n:'Lateral Raise',s:3,type:'isolation'},
+      ]},
+      {day:'Sat',name:'Lower',focus:'Legs & Core',exercises:[
+        {n:'Squat',s:4,type:'compound'},
+        {n:'Romanian Deadlift',s:3,type:'compound'},
+        {n:'Leg Press',s:3,type:'machine'},
+        {n:'Calf Raise',s:4,type:'isolation'},
+      ]},
+      {day:'Sun',name:'Rest',focus:'Full rest',exercises:[]},
+    ]
+  },
+  cardio: {
+    label: 'Cardio (Running)',
+    color: '#38bdf8',
+    days: [
+      {day:'Mon',name:'Easy Run',focus:'Aerobic base building',exercises:[
+        {n:'Easy Run',s:1,type:'cardio'},
+        {n:'Walking Cooldown',s:1,type:'cardio'},
+      ]},
+      {day:'Tue',name:'Rest',focus:'Recovery',exercises:[]},
+      {day:'Wed',name:'Tempo Run',focus:'Lactate threshold',exercises:[
+        {n:'Warm-up Jog',s:1,type:'cardio'},
+        {n:'Tempo Run',s:3,type:'cardio'},
+        {n:'Easy Cooldown',s:1,type:'cardio'},
+      ]},
+      {day:'Thu',name:'Rest',focus:'Recovery',exercises:[]},
+      {day:'Fri',name:'Intervals',focus:'Speed & VO2 Max',exercises:[
+        {n:'Warm-up Jog',s:1,type:'cardio'},
+        {n:'Sprint Intervals',s:6,type:'cardio'},
+        {n:'Cool-down Walk',s:1,type:'cardio'},
+      ]},
+      {day:'Sat',name:'Long Run',focus:'Endurance',exercises:[
+        {n:'Long Run',s:1,type:'cardio'},
+        {n:'Stretch',s:1,type:'mobility'},
+      ]},
+      {day:'Sun',name:'Rest',focus:'Full rest',exercises:[]},
+    ]
+  },
+  bodyweight: {
+    label: 'Bodyweight',
+    color: '#a78bfa',
+    days: [
+      {day:'Mon',name:'Push Day',focus:'Chest · Shoulders · Triceps',exercises:[
+        {n:'Push-ups',s:4,type:'bodyweight'},
+        {n:'Pike Push-ups',s:3,type:'bodyweight'},
+        {n:'Dips',s:3,type:'bodyweight'},
+        {n:'Diamond Push-ups',s:3,type:'bodyweight'},
+      ]},
+      {day:'Tue',name:'Pull Day',focus:'Back · Biceps',exercises:[
+        {n:'Pull-ups',s:4,type:'bodyweight'},
+        {n:'Chin-ups',s:3,type:'bodyweight'},
+        {n:'Inverted Row',s:3,type:'bodyweight'},
+        {n:'Scapular Pull-ups',s:3,type:'bodyweight'},
+      ]},
+      {day:'Wed',name:'Legs',focus:'Quads · Hamstrings · Glutes',exercises:[
+        {n:'Pistol Squat Progression',s:4,type:'bodyweight'},
+        {n:'Bulgarian Split Squat',s:3,type:'bodyweight'},
+        {n:'Nordic Curl',s:3,type:'bodyweight'},
+        {n:'Calf Raise',s:4,type:'bodyweight'},
+      ]},
+      {day:'Thu',name:'Rest',focus:'Recovery',exercises:[]},
+      {day:'Fri',name:'Full Body',focus:'Strength & skill',exercises:[
+        {n:'Pull-ups',s:3,type:'bodyweight'},
+        {n:'Push-ups',s:3,type:'bodyweight'},
+        {n:'Pistol Squat Progression',s:3,type:'bodyweight'},
+        {n:'Dips',s:3,type:'bodyweight'},
+        {n:'L-Sit Hold',s:3,type:'bodyweight'},
+      ]},
+      {day:'Sat',name:'Skill Work',focus:'Mobility & skills',exercises:[
+        {n:'Handstand Practice',s:4,type:'bodyweight'},
+        {n:'Planche Progression',s:4,type:'bodyweight'},
+        {n:'Front Lever Progression',s:3,type:'bodyweight'},
+      ]},
+      {day:'Sun',name:'Rest',focus:'Full rest',exercises:[]},
+    ]
+  },
+  hybrid: {
+    label: 'Hybrid',
+    color: '#fbbf24',
+    days: [
+      {day:'Mon',name:'Strength Push',focus:'Compound lifting',exercises:[
+        {n:'Bench Press',s:4,type:'compound'},
+        {n:'Overhead Press',s:3,type:'compound'},
+        {n:'Push-ups',s:3,type:'bodyweight'},
+        {n:'Tricep Pushdown',s:3,type:'isolation'},
+      ]},
+      {day:'Tue',name:'Run + Core',focus:'Aerobic & stability',exercises:[
+        {n:'Easy Run',s:1,type:'cardio'},
+        {n:'Plank Hold',s:3,type:'bodyweight'},
+        {n:'Hanging Knee Raise',s:3,type:'bodyweight'},
+      ]},
+      {day:'Wed',name:'Strength Pull',focus:'Back & biceps',exercises:[
+        {n:'Deadlift',s:3,type:'compound'},
+        {n:'Barbell Row',s:3,type:'compound'},
+        {n:'Pull-ups',s:4,type:'bodyweight'},
+        {n:'Bicep Curl',s:3,type:'isolation'},
+      ]},
+      {day:'Thu',name:'Tempo Run',focus:'Threshold training',exercises:[
+        {n:'Warm-up Jog',s:1,type:'cardio'},
+        {n:'Tempo Run',s:3,type:'cardio'},
+        {n:'Cool-down Walk',s:1,type:'cardio'},
+      ]},
+      {day:'Fri',name:'Strength Legs',focus:'Lower body power',exercises:[
+        {n:'Squat',s:4,type:'compound'},
+        {n:'Romanian Deadlift',s:3,type:'compound'},
+        {n:'Bulgarian Split Squat',s:3,type:'bodyweight'},
+        {n:'Calf Raise',s:4,type:'isolation'},
+      ]},
+      {day:'Sat',name:'Long Run',focus:'Endurance',exercises:[
+        {n:'Long Run',s:1,type:'cardio'},
+        {n:'Stretch',s:1,type:'mobility'},
+      ]},
+      {day:'Sun',name:'Rest',focus:'Full rest',exercises:[]},
+    ]
+  }
+};
+
+const EX_DB = {
+  'Bench Press':{muscle:'Chest, Triceps',w:50,r:5,prog:2.5,unit:'kg',rest:180,desc:'Lie flat on bench. Lower bar to chest with controlled descent, elbows ~75°. Press explosively. Keep feet flat, arch neutral.',tips:'Retract scapula before unracking. Leg drive into the floor.'},
+  'Overhead Press':{muscle:'Shoulders, Triceps',w:35,r:5,prog:2.5,unit:'kg',rest:180,desc:'Standing or seated, press bar from clavicle to overhead. Full lockout at top. Bar travels in a slight arc around the face.',tips:'Brace core hard. Avoid excessive lumbar extension.'},
+  'Deadlift':{muscle:'Hamstrings, Back, Glutes',w:70,r:5,prog:5,unit:'kg',rest:240,desc:'Hip hinge movement. Bar over mid-foot, neutral spine, engage lats before pulling. Drive through the floor.',tips:'Think "push the floor away" not "pull the bar up". Film from side.'},
+  'Squat':{muscle:'Quads, Glutes',w:60,r:5,prog:5,unit:'kg',rest:180,desc:'Barbell on upper traps or low bar. Break at hips and knees simultaneously. Hit parallel or below. Drive knees out.',tips:'Cue: "spread the floor". Keep chest up and gaze forward.'},
+  'Barbell Row':{muscle:'Back, Biceps',w:50,r:5,prog:2.5,unit:'kg',rest:180,desc:'Hinge ~45°, pull bar to lower chest/upper abdomen. Lead with elbows. Squeeze lats at top.',tips:'Control the eccentric. Avoid excessive momentum.'},
+  'Pull-ups':{muscle:'Back, Biceps',w:0,r:5,prog:1,unit:'reps',rest:120,desc:'Dead hang start, pull until chin clears bar. Full extension between reps. Vary grip: overhand = pull-up, underhand = chin-up.',tips:'Initiate with scapular depression before pulling with arms.'},
+  'Incline DB Press':{muscle:'Upper Chest',w:20,r:8,prog:2,unit:'kg',rest:120,desc:'30–45° incline. Dumbbell press, feel upper chest stretch at bottom. Control descent.',tips:'Touch dumbbells at top for full contraction.'},
+  'Lateral Raise':{muscle:'Side Delts',w:8,r:12,prog:1,unit:'kg',rest:60,desc:'Slight bend in elbows, raise arms to shoulder height with pinky slightly higher. Slow eccentric.',tips:'Lead with elbows. Avoid shrugging.'},
+  'Tricep Pushdown':{muscle:'Triceps',w:20,r:10,prog:2,unit:'kg',rest:60,desc:'Cable pushdown. Keep elbows glued to torso. Full extension at bottom, controlled return.',tips:'Go lighter and feel the muscle — isolation focus.'},
+  'Bicep Curl':{muscle:'Biceps',w:12,r:10,prog:1,unit:'kg',rest:60,desc:'Supinate wrist as you curl. Full extension at bottom. Don\'t swing.',tips:'Slow tempo (2-1-3) maximizes time under tension.'},
+  'Face Pull':{muscle:'Rear Delts',w:15,r:12,prog:1,unit:'kg',rest:60,desc:'Cable at eye level. Pull to face, externally rotating shoulders. Elbows high and wide.',tips:'Essential for shoulder health. Never skip this.'},
+  'Romanian Deadlift':{muscle:'Hamstrings, Glutes',w:50,r:8,prog:2.5,unit:'kg',rest:120,desc:'Hip hinge with soft knees. Feel hamstring stretch. Weight stays close to legs. Stop when back rounds.',tips:'Push hips back — not down. The stretch is the goal.'},
+  'Leg Press':{muscle:'Quads, Glutes',w:100,r:10,prog:5,unit:'kg',rest:120,desc:'Feet shoulder-width. Lower until 90° knee angle. Don\'t lock out at top. Foot position changes emphasis.',tips:'Higher feet = more glutes. Lower feet = more quads.'},
+  'Leg Curl':{muscle:'Hamstrings',w:30,r:10,prog:2.5,unit:'kg',rest:90,desc:'Prone or seated, curl heels toward glutes. Pause at peak contraction. Slow eccentric.',tips:'Control the negative — most growth happens here.'},
+  'Calf Raise':{muscle:'Calves',w:40,r:15,prog:2.5,unit:'kg',rest:60,desc:'Full range of motion: full stretch at bottom, full contraction at top. Calves respond best to high reps.',tips:'Pause 1 second at the top and bottom of each rep.'},
+  'Dips':{muscle:'Chest, Triceps',w:0,r:8,prog:1,unit:'reps',rest:90,desc:'Parallel bars. Lean forward for chest focus, upright for triceps. Lower until elbows ~90°.',tips:'Add weight with a belt when sets of 15+ feel easy.'},
+  'Push-ups':{muscle:'Chest, Triceps, Shoulders',w:0,r:10,prog:1,unit:'reps',rest:60,desc:'Perfect form: neutral spine, hands slightly wider than shoulders. Chest touches floor. Progress to harder variants.',tips:'Deficit push-ups increase range of motion for more chest stretch.'},
+  'Pike Push-ups':{muscle:'Shoulders, Triceps',w:0,r:8,prog:1,unit:'reps',rest:60,desc:'Inverted V position. Lower head toward floor. Progression toward handstand push-ups.',tips:'Elevate feet to increase difficulty.'},
+  'Chin-ups':{muscle:'Back, Biceps',w:0,r:6,prog:1,unit:'reps',rest:90,desc:'Underhand grip, chin over bar. More bicep involvement than pull-ups.',tips:'Supinate grip fully to maximize bicep activation.'},
+  'Inverted Row':{muscle:'Back, Biceps',w:0,r:10,prog:1,unit:'reps',rest:60,desc:'Under a bar or table. Pull chest to bar, keeping body rigid. Beginner pull movement.',tips:'Elevate feet to increase difficulty progressively.'},
+  'Scapular Pull-ups':{muscle:'Back',w:0,r:10,prog:1,unit:'reps',rest:60,desc:'Dead hang. Pull shoulder blades down without bending elbows. Activates lats for pull-up prep.',tips:'Do as a warm-up before pull-ups.'},
+  'Pistol Squat Progression':{muscle:'Quads, Glutes, Balance',w:0,r:5,prog:1,unit:'reps',rest:90,desc:'Single-leg squat. Begin with box squats or assisted version. Progress to full unsupported pistol.',tips:'Counterbalance with arms extended. Ankle mobility is key.'},
+  'Bulgarian Split Squat':{muscle:'Quads, Glutes',w:0,r:8,prog:1,unit:'reps',rest:90,desc:'Rear foot elevated on bench. Deep squat on front leg. Knee tracks toes.',tips:'Most effective single-leg exercise. Add dumbbells when bodyweight is easy.'},
+  'Nordic Curl':{muscle:'Hamstrings',w:0,r:5,prog:1,unit:'reps',rest:120,desc:'Feet anchored, lower body toward floor eccentrically. One of the best hamstring injury prevention exercises.',tips:'Use hands to assist on the way up initially.'},
+  'L-Sit Hold':{muscle:'Core, Triceps',w:0,r:1,prog:1,unit:'reps',rest:60,desc:'Support body on hands with legs extended parallel to floor. Start with tucked version.',tips:'Compress and hollow your body. Build hold time gradually.'},
+  'Handstand Practice':{muscle:'Shoulders, Core, Balance',w:0,r:4,prog:1,unit:'reps',rest:60,desc:'Wall-supported handstand to freestanding. Practice kicking up, finding balance, wall walks.',tips:'Train daily in short sessions. Balance is a skill.'},
+  'Planche Progression':{muscle:'Chest, Shoulders, Core',w:0,r:4,prog:1,unit:'reps',rest:90,desc:'Planche leans → tuck planche → advanced tuck → straddle → full planche. Extremely demanding skill.',tips:'Be patient — years of consistent practice required.'},
+  'Front Lever Progression':{muscle:'Back, Core',w:0,r:3,prog:1,unit:'reps',rest:90,desc:'Tuck → advanced tuck → one-leg → straddle → full front lever. Develops incredible back strength.',tips:'Hold each progression until 3×8s before advancing.'},
+  'Hanging Knee Raise':{muscle:'Core, Hip Flexors',w:0,r:12,prog:1,unit:'reps',rest:60,desc:'Hang from bar. Draw knees to chest using core — not hip flexor momentum.',tips:'Posterior pelvic tilt at top for full ab contraction.'},
+  'Plank Hold':{muscle:'Core, Shoulders',w:0,r:1,prog:1,unit:'reps',rest:60,desc:'Forearm plank. Neutral spine. Squeeze everything: glutes, abs, quads. Target: 60s+.',tips:'Breathe through it. Don\'t let hips rise or sag.'},
+  'Easy Run':{muscle:'Cardio, Legs',w:0,r:1,prog:0,unit:'km',rest:0,desc:'Conversational pace — you can hold a full sentence. Builds aerobic base. Typical: 5–10km.',tips:'Use the 80/20 rule: 80% of training at easy pace.'},
+  'Tempo Run':{muscle:'Cardio, Legs',w:0,r:1,prog:0,unit:'km',rest:0,desc:'Comfortably hard — can say a few words but not full sentences. 20–40 min sustained effort.',tips:'Builds lactate threshold. Once a week is enough.'},
+  'Sprint Intervals':{muscle:'Cardio, Legs',w:0,r:1,prog:0,unit:'reps',rest:0,desc:'Maximum effort sprints (30s–2min) with equal recovery. Builds VO2 max and speed.',tips:'Fully recover between intervals. Quality over quantity.'},
+  'Long Run':{muscle:'Cardio, Legs',w:0,r:1,prog:0,unit:'km',rest:0,desc:'Easy, conversational pace for extended distance. Add ~10% per week. Cornerstone of running fitness.',tips:'Fuel and hydrate before runs over 75 minutes.'},
+  'Warm-up Jog':{muscle:'Cardio',w:0,r:1,prog:0,unit:'km',rest:0,desc:'Easy 10–15 min jog to raise heart rate and prepare for harder efforts.',tips:'Don\'t skip — reduces injury risk and improves performance.'},
+  'Easy Cooldown':{muscle:'Cardio',w:0,r:1,prog:0,unit:'km',rest:0,desc:'Slow jog or walk after hard efforts to gradually lower heart rate.',tips:'Add 5 min of static stretching after.'},
+  'Cool-down Walk':{muscle:'Cardio',w:0,r:1,prog:0,unit:'km',rest:0,desc:'10–15 min easy walk to bring heart rate down post-run.',tips:'Excellent time for breathing exercises and mindfulness.'},
+  'Walking Cooldown':{muscle:'Cardio',w:0,r:1,prog:0,unit:'km',rest:0,desc:'10-minute walk after runs to allow gradual heart rate recovery.',tips:'Use this time to do a body scan for any tightness.'},
+  'Stretch':{muscle:'Flexibility',w:0,r:1,prog:0,unit:'reps',rest:0,desc:'Full body static stretching routine. Hold each stretch 30–60s. Focus on hip flexors, hamstrings, thoracic spine.',tips:'Breathe into each stretch. Never bounce.'},
+};
+
+function getTarget(exName, week, prog) {
+  const e = EX_DB[exName];
+  if (!e) return {w:0,r:8};
+  const inc = (prog-1) * (e.prog||0);
+  return {w: Math.round((e.w + inc)*2)/2, r: e.r};
+}
+
+let S = {
+  week: 1, prog: 'strength', tab: 'plan',
+  session: null, sessionDate: null,
+  logs: {}, prs: {}, completedKeys: [],
+  timer: 0, restTimer: 0, restActive: false,
+  libFilter: 'all', libSearch: '',
+};
+
+try {
+  const sv = sessionStorage.getItem('apexfit_v3');
+  if (sv) Object.assign(S, JSON.parse(sv));
+} catch(e){}
+
+function save() {
+  try { sessionStorage.setItem('apexfit_v3', JSON.stringify(S)); } catch(e){}
+}
+
+let _timerI = null, _restI = null;
+
+function startTimer() {
+  if (_timerI) return;
+  S.timer = 0;
+  _timerI = setInterval(() => { S.timer++; updTimer(); }, 1000);
+}
+function stopTimer() { clearInterval(_timerI); _timerI = null; }
+
+function updTimer() {
+  const el = document.getElementById('sTimer');
+  if (!el) { stopTimer(); return; }
+  el.textContent = fmt(S.timer);
+}
+
+function startRest(sec) {
+  S.restTimer = sec; S.restActive = true;
+  clearInterval(_restI);
+  _restI = setInterval(() => {
+    if (S.restTimer <= 0) { S.restActive = false; clearInterval(_restI); updRest(); return; }
+    S.restTimer--;
+    updRest();
+  }, 1000);
+}
+
+function updRest() {
+  const el = document.getElementById('restVal');
+  const wrap = document.getElementById('restWrap');
+  if (!el || !wrap) { clearInterval(_restI); return; }
+  if (S.restActive) { wrap.style.display='flex'; el.textContent = fmt(S.restTimer); }
+  else { wrap.style.display='none'; }
+}
+
+function fmt(s) {
+  return Math.floor(s/60)+':'+(s%60).toString().padStart(2,'0');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+function switchTab(tab) {
+  S.tab = tab; S.session = null;
+  stopTimer(); clearInterval(_restI);
+  document.querySelectorAll('.nb').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  render();
+}
+
+function switchProg(p) {
+  S.prog = p; save(); render();
+}
+
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayDay() { return DAY_NAMES[new Date().getDay()]; }
+
+function logKey(date, dayIdx) { return `${date}__${S.prog}__${dayIdx}`; }
+
+function getOrCreateLog(date, dayIdx) {
+  const k = logKey(date, dayIdx);
+  if (!S.logs[k]) {
+    const day = PROGRAMS[S.prog].days[dayIdx];
+    S.logs[k] = {
+      prog: S.prog, dayName: day.name, date,
+      exercises: day.exercises.map(ex => {
+        const t = getTarget(ex.n, S.week, S.week);
+        const unit = EX_DB[ex.n]?.unit || 'kg';
+        return {
+          name: ex.n,
+          sets: Array.from({length: ex.s}, () => ({w: t.w, r: t.r, done: false, note: ''}))
+        };
+      })
+    };
+    save();
+  }
+  return S.logs[k];
+}
+
+function openSession(dayIdx) {
+  S.session = dayIdx; S.sessionDate = todayStr();
+  S.restActive = false; S.restTimer = 0;
+  getOrCreateLog(S.sessionDate, dayIdx);
+  startTimer();
+  render();
+}
+
+function closeSession() {
+  S.session = null; stopTimer(); clearInterval(_restI); S.tab = 'plan';
+  render();
+}
+
+function updateSet(ei, si, field, val) {
+  const log = getOrCreateLog(S.sessionDate, S.session);
+  log.exercises[ei].sets[si][field] = field === 'note' ? val : (parseFloat(val)||0);
+  save();
+}
+
+function toggleSet(ei, si) {
+  const log = getOrCreateLog(S.sessionDate, S.session);
+  const set = log.exercises[ei].sets[si];
+  set.done = !set.done;
+  if (set.done) {
+    const exName = log.exercises[ei].name;
+    const vol = set.w * set.r;
+    const pr = S.prs[exName];
+    if (!pr || vol > pr.w * pr.r) {
+      S.prs[exName] = {w: set.w, r: set.r, date: S.sessionDate};
+      if (pr) toast('New PR on ' + exName + '!');
+    }
+    const e = EX_DB[exName];
+    if (e && e.rest > 0) startRest(e.rest);
+  }
+  save();
+  render();
+}
+
+function completeSession() {
+  const k = logKey(S.sessionDate, S.session);
+  S.logs[k]._done = true;
+  S.logs[k]._dur = S.timer;
+  if (!S.completedKeys.includes(k)) S.completedKeys.push(k);
+  save();
+  stopTimer(); clearInterval(_restI);
+  toast('Session complete! Great work.');
+  S.session = null; S.tab = 'plan';
+  render();
+}
+
+function advWeek() {
+  S.week++; save(); toast('Week '+S.week+' loaded. Weights increased!'); render();
+}
+
+// ===== RENDER =====
+function render() {
+  document.getElementById('wkBadge').textContent = 'Week ' + S.week;
+  const now = new Date();
+  document.getElementById('dateBadge').textContent = now.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+
+  if (S.session !== null && S.tab === 'plan') { renderSession(); return; }
+
+  const c = document.getElementById('content');
+  switch(S.tab) {
+    case 'plan': c.innerHTML = rPlan(); break;
+    case 'stats': c.innerHTML = rStats(); break;
+    case 'history': c.innerHTML = rHistory(); break;
+    case 'library': c.innerHTML = rLibrary(); break;
+  }
+}
+
+// ---- PLAN ----
+function rPlan() {
+  const prog = PROGRAMS[S.prog];
+  const todayD = todayDay();
+  let h = '';
+
+  h += `<div class="prog-tabs">`;
+  Object.entries(PROGRAMS).forEach(([k,p]) => {
+    h += `<div class="ptab ${S.prog===k?'on':''}" style="${S.prog===k?`border-color:${p.color};color:${p.color}`:''};" onclick="switchProg('${k}')">${p.label}</div>`;
+  });
+  h += `</div>`;
+
+  h += `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 0">
+    <div style="font-size:18px;font-weight:700">This Week</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="advWeek()" style="background:none;border:1px solid var(--bd);border-radius:8px;padding:6px 12px;color:var(--t2);font-size:11px;cursor:pointer;">Next Week ↑</button>
+    </div>
+  </div>`;
+  h += `<div style="padding:6px 14px 10px;font-size:12px;color:var(--t3)">Tap a session to log your workout</div>`;
+
+  h += `<div class="pgrid">`;
+  prog.days.forEach((day, i) => {
+    const isToday = day.day === todayD;
+    const isRest = !day.exercises.length;
+    const k = logKey(todayStr(), i);
+    const isDone = S.completedKeys.includes(k);
+    const log = S.logs[k];
+    const doneSets = log ? log.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0) : 0;
+    const totalSets = log ? log.exercises.reduce((a,e)=>a+e.sets.length,0) : day.exercises.reduce((a,e)=>a+e.s,0);
+    const pct = totalSets > 0 ? Math.round(doneSets/totalSets*100) : 0;
+
+    const col = isRest ? '' : (isToday ? `style="border-color:${prog.color}"` : '');
+    h += `<div class="dc ${isToday&&!isRest?'now':''} ${isDone?'done':''} ${isRest?'rest':''}" ${col} ${isRest?'':'onclick="openSession('+i+')"'}>
+      <div class="dlbl" style="${isToday?`color:${prog.color}`:''}'">${day.day}${isToday?' · today':''}${isDone?' ✓':''}</div>
+      <div class="dname">${day.name}</div>
+      <div class="dsub">${day.focus}</div>
+      ${!isRest ? `<div class="pbr"><div class="pbrf" style="width:${isDone?100:pct}%;background:${prog.color}"></div></div>` : ''}
+    </div>`;
+  });
+  h += `</div>`;
+
+  // Today targets
+  const todayIdx = prog.days.findIndex(d => d.day === todayD);
+  if (todayIdx >= 0 && prog.days[todayIdx].exercises.length > 0) {
+    const pHint = getProgressionHint(todayIdx);
+    if (pHint) h += `<div class="prog-hint">💡 <strong>Auto-progression:</strong> ${pHint}</div>`;
+    h += `<div class="card"><h2>Today's targets</h2>`;
+    prog.days[todayIdx].exercises.forEach(ex => {
+      const t = getTarget(ex.n, S.week, S.week);
+      const pr = S.prs[ex.n];
+      const e = EX_DB[ex.n];
+      h += `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd)">
+        <div>
+          <div style="font-size:13px;font-weight:600">${ex.n}</div>
+          <div style="font-size:11px;color:var(--t3)">${e?.muscle||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--mono);font-size:12px;color:${prog.color}">${e?.unit==='reps'||e?.unit==='km'?'BW':t.w+'kg'} × ${t.r}${e?.unit==='km'?' km':''}</div>
+          ${pr ? `<div style="font-size:10px;color:var(--t3)">PR: ${pr.w>0?pr.w+'kg':'BW'} × ${pr.r}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    h += `</div>`;
+  }
+
+  return h;
+}
+
+function getProgressionHint(dayIdx) {
+  const prog = PROGRAMS[S.prog];
+  const day = prog.days[dayIdx];
+  const mainEx = day.exercises.find(e => EX_DB[e.n]?.prog > 0);
+  if (!mainEx) return '';
+  const prev = getTarget(mainEx.n, S.week-1, S.week-1);
+  const curr = getTarget(mainEx.n, S.week, S.week);
+  if (S.week <= 1) return `Starting ${mainEx.n} at ${curr.w > 0 ? curr.w+'kg' : 'bodyweight'} × ${curr.r}`;
+  return `${mainEx.n} progressed from ${prev.w > 0 ? prev.w+'kg' : 'BW'} → ${curr.w > 0 ? curr.w+'kg' : 'BW'} (+${EX_DB[mainEx.n].prog}kg)`;
+}
+
+// ---- SESSION ----
+function renderSession() {
+  const dayIdx = S.session;
+  const prog = PROGRAMS[S.prog];
+  const day = prog.days[dayIdx];
+  const log = getOrCreateLog(S.sessionDate, dayIdx);
+  const allDone = log.exercises.every(e => e.sets.every(s => s.done));
+  const doneSets = log.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
+  const totalSets = log.exercises.reduce((a,e)=>a+e.sets.length,0);
+
+  let h = `<div class="shdr">
+    <button class="back" onclick="closeSession()">← back to plan</button>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="stitle">${day.name}</div>
+        <div class="smeta">${day.focus} · <span class="timer" id="sTimer">${fmt(S.timer)}</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--mono);font-size:14px;color:${prog.color}">${doneSets}/${totalSets} sets</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">${Math.round(doneSets/totalSets*100)||0}% done</div>
+      </div>
+    </div>
+  </div>`;
+
+  const restDis = S.restActive ? 'flex' : 'none';
+  h += `<div class="rest-timer" id="restWrap" style="margin:0 14px 12px;display:${restDis}">
+    <div class="rt-label">Rest timer</div>
+    <div class="rt-val" id="restVal">${fmt(S.restTimer)}</div>
+    <button class="rt-skip" onclick="S.restActive=false;clearInterval(_restI);updRest()">skip</button>
+  </div>`;
+
+  log.exercises.forEach((ex, ei) => {
+    const target = getTarget(ex.name, S.week, S.week);
+    const doneC = ex.sets.filter(s=>s.done).length;
+    const edb = EX_DB[ex.name];
+    const unit = edb?.unit || 'kg';
+    const isCardio = unit === 'km';
+    const isBW = unit === 'reps';
+
+    h += `<div class="ex-wrap">
+      <div class="exh">
+        <div>
+          <div class="exn">${ex.name}</div>
+          <div class="exm">${edb?.muscle||''}</div>
+        </div>
+        <div class="exr">
+          <div class="exp">${doneC}/${ex.sets.length} sets</div>
+          <div class="ext">target: ${isBW||isCardio?'BW':target.w+'kg'} × ${target.r}${isCardio?' km':''}</div>
+        </div>
+      </div>
+      <div class="sets-body">
+        <div class="slbl">
+          <div class="sl">set</div>
+          <div class="sl">${isCardio?'km':isBW?'BW':unit}</div>
+          <div class="sl">${isCardio?'min':'reps'}</div>
+          <div class="sl">note</div>
+          <div class="sl"></div>
+        </div>`;
+
+    ex.sets.forEach((set, si) => {
+      h += `<div class="sr">
+        <div class="sn">${si+1}</div>
+        <input class="si ${set.done?'done-i':''}" type="number" value="${set.w}" min="0" step="${isCardio?0.5:isBW?1:2.5}" onchange="updateSet(${ei},${si},'w',this.value)">
+        <input class="si ${set.done?'done-i':''}" type="number" value="${set.r}" min="1" step="1" onchange="updateSet(${ei},${si},'r',this.value)">
+        <input class="rest-inp" type="text" placeholder="note…" value="${set.note||''}" onchange="updateSet(${ei},${si},'note',this.value)">
+        <button class="chk ${set.done?'on':''}" onclick="toggleSet(${ei},${si})">✓</button>
+      </div>`;
+    });
+
+    if (edb?.tips) {
+      h += `<div style="margin-top:8px;padding:8px 10px;background:var(--s3);border-radius:6px;font-size:11px;color:var(--t3)">${edb.tips}</div>`;
+    }
+    h += `</div></div>`;
+  });
+
+  h += `<button class="cbtn" onclick="completeSession()" ${allDone?'':'disabled'}>${allDone?'Complete Session ✓':'Check off all sets to finish'}</button>`;
+  document.getElementById('content').innerHTML = h;
+  updTimer(); updRest();
+}
+
+// ---- STATS ----
+function rStats() {
+  const all = Object.values(S.logs).filter(l=>l._done);
+  const totalSess = all.length;
+  const totalSets = all.reduce((a,l)=>a+l.exercises.reduce((b,e)=>b+e.sets.length,0),0);
+  const totalVol = all.reduce((a,l)=>a+l.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.w*s.r,0),0),0);
+
+  let h = `<div style="padding:16px 14px 0"><div style="font-size:18px;font-weight:700">Progress</div></div>`;
+
+  h += `<div class="srow">
+    <div class="sbox"><div class="sval">${totalSess}</div><div class="slab">sessions</div></div>
+    <div class="sbox"><div class="sval">${S.week}</div><div class="slab">week</div></div>
+    <div class="sbox"><div class="sval">${totalSets}</div><div class="slab">total sets</div></div>
+  </div>`;
+
+  h += `<div class="card"><h2>Volume trend</h2><div class="mchart">`;
+  const maxW = S.week;
+  for (let w = Math.max(1,maxW-7); w <= maxW; w++) {
+    const est = totalVol > 0 ? Math.round(totalVol * (w/maxW)) : 0;
+    const pct = totalVol > 0 ? Math.round((est/totalVol)*100) : 4;
+    h += `<div class="mbar ${w===maxW?'hi':''}" style="height:${Math.max(pct,4)}%"><span class="blbl">W${w}</span></div>`;
+  }
+  h += `</div><div style="height:20px"></div>`;
+  h += `<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2)">
+    <span>Total volume: ${Math.round(totalVol).toLocaleString()} kg·reps</span>
+    <span style="color:var(--lime)">Week ${S.week} active</span>
+  </div></div>`;
+
+  const prs = Object.entries(S.prs);
+  h += `<div class="card"><h2>Personal records (${prs.length})</h2>`;
+  if (!prs.length) {
+    h += `<div style="color:var(--t3);font-size:13px">Complete sets to earn PRs</div>`;
+  } else {
+    prs.forEach(([n, pr]) => {
+      h += `<div class="pr-row">
+        <div><div class="pr-name">${n}</div><div class="pr-sub">${pr.date}</div></div>
+        <div class="pr-val">${pr.w>0?pr.w+'kg':'BW'} × ${pr.r}</div>
+      </div>`;
+    });
+  }
+  h += `</div>`;
+
+  h += `<div class="card"><h2>Next week preview (+${S.week<2?'start':''} progression)</h2>`;
+  const mainLifts = ['Squat','Bench Press','Deadlift','Overhead Press','Barbell Row'];
+  mainLifts.forEach(n => {
+    const cur = getTarget(n, S.week, S.week);
+    const nxt = getTarget(n, S.week+1, S.week+1);
+    const prog = EX_DB[n]?.prog || 0;
+    h += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px">
+      <div>${n}</div>
+      <div style="font-family:var(--mono)"><span style="color:var(--t3)">${cur.w}kg</span> <span style="color:var(--t3)">→</span> <span style="color:var(--lime)">${nxt.w}kg</span> <span style="font-size:10px;color:var(--t3)">(+${prog}kg)</span></div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  return h;
+}
+
+// ---- HISTORY ----
+function rHistory() {
+  const done = Object.values(S.logs).filter(l=>l._done).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  let h = `<div style="padding:16px 14px 0;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:18px;font-weight:700">History</div>
+    <div style="font-size:12px;color:var(--t3)">${done.length} sessions</div>
+  </div>`;
+  if (!done.length) {
+    h += `<div class="empty">No sessions yet.<br>Start your first workout from the plan tab.</div>`;
+    return h;
+  }
+  done.forEach(log => {
+    const dur = log._dur ? fmt(log._dur) : '';
+    const vol = log.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+s.w*s.r,0),0);
+    const pCols = {strength:'#c8ff00',cardio:'#38bdf8',bodyweight:'#a78bfa',hybrid:'#fbbf24'};
+    const col = pCols[log.prog]||'#c8ff00';
+    h += `<div class="hi-item">
+      <div class="hi-date">${log.date} · ${dur} · ${PROGRAMS[log.prog]?.label||log.prog}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div class="hi-name">${log.dayName}</div>
+        ${vol > 0 ? `<div style="font-family:var(--mono);font-size:11px;color:${col}">${Math.round(vol).toLocaleString()} kg</div>` : ''}
+      </div>
+      <div class="hi-tags">`;
+    log.exercises.forEach(ex => {
+      const isPR = S.prs[ex.name]?.date === log.date;
+      h += `<span class="tag ${isPR?'pr-tag':''}">${ex.name}${isPR?' PR':''}${ex.sets.filter(s=>s.done).length>0?' ·'+ex.sets.filter(s=>s.done).length+'s':''}</span>`;
+    });
+    h += `</div></div>`;
+  });
+  return h;
+}
+
+// ---- LIBRARY ----
+function rLibrary() {
+  const filters = ['all','compound','bodyweight','machine','isolation','cardio','mobility'];
+  let h = `<div style="padding:14px 14px 0"><div style="font-size:18px;font-weight:700">Exercise Library</div></div>`;
+  h += `<div class="search-wrap"><input class="search-inp" placeholder="Search exercises…" value="${S.libSearch}" oninput="S.libSearch=this.value;render()"></div>`;
+  h += `<div class="filter-row">`;
+  filters.forEach(f => {
+    h += `<div class="fb ${S.libFilter===f?'on':''}" onclick="S.libFilter='${f}';render()">${f}</div>`;
+  });
+  h += `</div>`;
+
+  const cats = {};
+  Object.entries(EX_DB).forEach(([name, e]) => {
+    const typeMap = {kg:'compound',reps:'bodyweight',km:'cardio'};
+    const cat = e.unit==='km'?'cardio':e.unit==='reps'?'bodyweight':(e.prog===0?'isolation':'compound');
+    const actualCat = name.includes('Curl') || name.includes('Raise') || name.includes('Pushdown') || name.includes('Pull') && name!=='Pull-ups' && name!=='Lat Pulldown' ? 'isolation' : cat;
+    const finalCat = name.includes('Lat Pulldown') ? 'machine' : name.includes('Leg Press') || name.includes('Leg Curl') || name.includes('Cable') ? 'machine' : actualCat;
+
+    if (S.libFilter !== 'all' && S.libFilter !== finalCat) return;
+    if (S.libSearch && !name.toLowerCase().includes(S.libSearch.toLowerCase()) && !e.muscle.toLowerCase().includes(S.libSearch.toLowerCase())) return;
+
+    if (!cats[finalCat]) cats[finalCat] = [];
+    cats[finalCat].push({name, ...e, cat: finalCat});
+  });
+
+  if (!Object.keys(cats).length) {
+    h += `<div class="empty">No exercises found.</div>`;
+    return h;
+  }
+
+  Object.entries(cats).forEach(([cat, exs]) => {
+    h += `<div class="cat-hdr">${cat}</div>`;
+    exs.forEach(ex => {
+      const cur = getTarget(ex.name, S.week, S.week);
+      const pr = S.prs[ex.name];
+      h += `<div class="ex-detail">
+        <div class="ex-dl">
+          <div>
+            <div class="ex-dname">${ex.name}</div>
+            <div class="ex-dinfo">${ex.muscle}</div>
+          </div>
+          <div class="ex-dbadge">${ex.unit==='reps'||ex.unit==='km'?'Bodyweight':cur.w+'kg'} × ${cur.r}</div>
+        </div>
+        <div class="ex-desc">${ex.desc}</div>
+        <div class="ex-stats">
+          ${ex.prog > 0 ? `<span class="ex-stat">+${ex.prog}kg/week</span>` : '<span class="ex-stat">no weight prog</span>'}
+          ${ex.rest > 0 ? `<span class="ex-stat">${ex.rest}s rest</span>` : ''}
+          ${pr ? `<span class="ex-stat" style="color:var(--lime)">PR: ${pr.w>0?pr.w+'kg':'BW'} × ${pr.r}</span>` : ''}
+        </div>
+        <div style="margin-top:6px;padding:6px 10px;background:var(--s3);border-radius:5px;font-size:11px;color:var(--t3)">
+          Tip: ${ex.tips}
+        </div>
+      </div>`;
+    });
+  });
+
+  return h;
+}
+
+render();
+</script>
+</body>
+</html>
