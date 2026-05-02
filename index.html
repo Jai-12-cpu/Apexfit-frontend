@@ -69,7 +69,7 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--t3);ma
 
 <script>
 // --- CONFIGURATION ---
-const RAILWAY_API_URL = "https://your-backend-api.up.railway.app/save-workout"; 
+const RAILWAY_API_URL = "https://fastapi-production-cee9.up.railway.app/save-workout";
 
 let S = {
   week: 1, prog: 'strength', tab: 'plan', session: null,
@@ -95,7 +95,7 @@ async function completeSession() {
   
   // Vibe Check: Sync to Railway
   try {
-    await fetch(postgresql:BAxLFvDOMgRorMRSAIpgwrMUqhpsBLJB@postgres.railway.internal:5432/railway, {
+    await fetch(RAILWAY_API_URL ,{
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(workoutData)
