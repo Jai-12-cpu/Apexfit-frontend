@@ -170,7 +170,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
           <div class="ex-card"><div class="ex-name">Tricep Pushdown</div><div class="ex-sets">3 × 12 @ 35 kg</div><span class="ex-muscle">Triceps</span></div>
           <div class="ex-card"><div class="ex-name">Skull Crushers</div><div class="ex-sets">3 × 10 @ 30 kg</div><span class="ex-muscle">Triceps</span></div>
         </div>
-        <button id="sessionControlBtn" class="cbtn" onclick="startSession()">▶ Start Session</button>
+        <button class="cbtn" onclick="showToast('Session started!')">▶ Start Session</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="card">
@@ -422,25 +422,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
 <div class="toast" id="toast"></div>
 
 <script>
-<script>
-// 1. Configuration & Global State
 const RAILWAY_API_URL = "https://fastapi-production-cee9.up.railway.app/save-workout";
 
-// Define S globally so the functions can access the workout data
-window.S = {
-  tab: 'plan',
-  logs: [
-    { name: "Bench Press", sets: "4 × 5 @ 90 kg", muscle: "Chest" },
-    { name: "Overhead Press", sets: "3 × 8 @ 55 kg", muscle: "Shoulders" },
-    { name: "Incline DB Press", sets: "3 × 10 @ 32 kg", muscle: "Upper Chest" },
-    { name: "Lateral Raises", sets: "4 × 15 @ 12 kg", muscle: "Side Delts" },
-    { name: "Tricep Pushdown", sets: "3 × 12 @ 35 kg", muscle: "Triceps" },
-    { name: "Skull Crushers", sets: "3 × 10 @ 30 kg", muscle: "Triceps" }
-  ],
-  isSessionActive: false
-};
-
-// 2. Navigation & UI Logic
 function switchTab(tab, btn) {
   document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
@@ -456,49 +439,6 @@ function showToast(m) {
   setTimeout(() => t.style.display = 'none', 2500);
 }
 
-// 3. Session Management & Railway Integration
-function startSession() {
-  S.isSessionActive = true;
-  showToast('Session started! Go crush it.');
-  
-  const btn = document.getElementById('sessionControlBtn');
-  btn.textContent = "🏁 Complete Session";
-  btn.style.background = "var(--sky)";
-  btn.onclick = completeSession; // Swap the function to Complete
-}
-
-async function completeSession() {
-  showToast('Syncing with Railway...');
-  
-  const workoutData = {
-    sessionDate: new Date().toLocaleString(),
-    data: S.logs,
-    totalVolume: 4820 // Matches your UI stat
-  };
-
-  try {
-    const response = await fetch(RAILWAY_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(workoutData)
-    });
-
-    if (response.ok) {
-      showToast('Cloud Sync Successful! ✓');
-      const btn = document.getElementById('sessionControlBtn');
-      btn.textContent = "▶ Start Session";
-      btn.style.background = "var(--lime)";
-      btn.onclick = startSession;
-    } else {
-      throw new Error('Server error');
-    }
-  } catch (err) {
-    console.error("Sync failed:", err);
-    showToast('Sync Failed - Check Console');
-  }
-}
-
-// 4. Chart Logic (Kept from your original)
 const weeks = ['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
 const chartDefaults = {
   responsive: true, maintainAspectRatio: false,
@@ -513,15 +453,68 @@ let chartsInit = false;
 function initAnalyticsCharts() {
   if (chartsInit) return;
   chartsInit = true;
+
   new Chart(document.getElementById('volumeChart'), {
     type: 'line',
     data: {
       labels: weeks,
       datasets: [{ label: 'Volume', data: [3200,3500,3100,3800,4100,3900,4500,4820], borderColor: '#c8ff00', backgroundColor: 'rgba(200,255,0,0.05)', fill: true, tension: 0.4, pointBackgroundColor: '#c8ff00', pointRadius: 4 }]
     },
-    options: { ...chartDefaults }
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
   });
-  // ... (Include your other PR and progression charts here as per your original code)
+
+  new Chart(document.getElementById('muscleChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Chest','Legs','Back','Shoulders','Arms'],
+      datasets: [{ data: [28,25,22,15,10], backgroundColor: ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#a78bfa'], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' }
+  });
+
+  const liftOpts = {
+    ...chartDefaults,
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 9 } } },
+      y: { grid: { color: 'rgba(100,100,160,0.1)' }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 9 } } }
+    }
+  };
+
+  new Chart(document.getElementById('benchChart'), {
+    type: 'line',
+    data: { labels: weeks, datasets: [{ data: [75,77.5,77.5,80,82.5,85,87.5,90], borderColor: '#c8ff00', backgroundColor: 'rgba(200,255,0,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#c8ff00' }] },
+    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
+  });
+
+  new Chart(document.getElementById('squatChart'), {
+    type: 'line',
+    data: { labels: weeks, datasets: [{ data: [100,102.5,105,107.5,110,112.5,115,120], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#38bdf8' }] },
+    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
+  });
+
+  new Chart(document.getElementById('deadliftChart'), {
+    type: 'line',
+    data: { labels: weeks, datasets: [{ data: [120,125,125,130,132.5,137.5,140,145], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#fbbf24' }] },
+    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
+  });
+
+  new Chart(document.getElementById('durationChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets: [{ data: [65,70,75,60,0,0,0], backgroundColor: ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#404060','#404060','#404060'], borderRadius: 4 }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  new Chart(document.getElementById('consistencyChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Dec','Jan','Feb','Mar','Apr','May'],
+      datasets: [{ data: [70,75,68,82,86,89], backgroundColor: 'rgba(200,255,0,0.15)', borderColor: '#c8ff00', borderWidth: 1, borderRadius: 4 }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
+  });
 }
 
 let historyInit = false;
@@ -538,10 +531,9 @@ function initHistoryChart() {
         { label: 'Legs', data: [4200,4600,4900,5200], backgroundColor: '#f43f5e', borderRadius: 3 }
       ]
     },
-    options: { ...chartDefaults, plugins: { legend: { display: true, labels: { color: '#8080a0', font: { family: 'DM Mono', size: 10 }, boxWidth: 10 } } } }
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#8080a0', font: { family: 'DM Mono', size: 10 }, boxWidth: 10 } } } }
   });
 }
-</script>
 </script>
 </body>
 </html>
