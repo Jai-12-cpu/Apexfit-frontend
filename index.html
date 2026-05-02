@@ -1,539 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ApexFit Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#080810;--s1:#0e0e18;--s2:#13131f;--s3:#1a1a28;--s4:#222235;
-  --lime:#c8ff00;--sky:#38bdf8;--rose:#f43f5e;--amber:#fbbf24;
-  --t1:#f0f0fa;--t2:#8080a0;--t3:#404060;--bd:rgba(100,100,160,0.15);
-  --r:10px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
-}
-body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
-.app{display:flex;flex-direction:column;min-height:100vh}
-
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--bd);background:rgba(8,8,16,0.95);position:sticky;top:0;z-index:100}
-.logo{font-family:var(--display);font-size:26px;color:var(--lime);letter-spacing:6px}
-.hdr-right{display:flex;align-items:center;gap:16px}
-.streak-badge{display:flex;align-items:center;gap:6px;background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.25);border-radius:20px;padding:6px 14px;font-size:12px;font-family:var(--mono);color:var(--lime)}
-.streak-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#c8ff00,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:12px;color:#000;font-family:var(--mono)}
-
-.nav{display:flex;gap:2px;padding:0 32px;background:var(--s1);border-bottom:1px solid var(--bd)}
-.nb{padding:14px 22px;border:none;background:none;color:var(--t3);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all 0.2s}
-.nb:hover{color:var(--t2)}
-.nb.on{color:var(--lime);border-bottom-color:var(--lime)}
-
-.content{flex:1;padding:28px 32px;overflow-y:auto;display:none}
-.content.active{display:block}
-
-.section-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--t3);margin-bottom:16px}
-
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.stat{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.stat.lime::before{background:var(--lime)}
-.stat.sky::before{background:var(--sky)}
-.stat.rose::before{background:var(--rose)}
-.stat.amber::before{background:var(--amber)}
-.stat-val{font-family:var(--display);font-size:36px;letter-spacing:2px;line-height:1}
-.stat-label{font-size:11px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;margin-top:6px;letter-spacing:1px}
-.stat-delta{font-size:11px;margin-top:8px;font-family:var(--mono)}
-.stat-delta.up{color:var(--lime)}
-.stat-delta.down{color:var(--rose)}
-
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
-.grid-7-5{display:grid;grid-template-columns:7fr 5fr;gap:16px;margin-bottom:24px}
-.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:22px}
-
-.chart-wrap{position:relative;width:100%}
-
-.prog-bar-wrap{margin-bottom:12px}
-.prog-label{display:flex;justify-content:space-between;font-size:12px;font-family:var(--mono);color:var(--t2);margin-bottom:6px}
-.prog-track{background:var(--s3);border-radius:4px;height:6px;overflow:hidden}
-.prog-fill{height:100%;border-radius:4px;transition:width 1s ease}
-
-.lift-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd)}
-.lift-row:last-child{border-bottom:none}
-.lift-name{font-weight:500;font-size:14px;flex:1}
-.lift-weight{font-family:var(--display);font-size:22px;letter-spacing:1px;color:var(--lime)}
-.lift-badge{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:12px;background:rgba(200,255,0,0.1);color:var(--lime);border:1px solid rgba(200,255,0,0.2)}
-.lift-muscle{font-size:11px;font-family:var(--mono);color:var(--t3)}
-
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
-.cal-day{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);cursor:pointer;transition:transform 0.1s}
-.cal-day:hover{transform:scale(1.1)}
-.cal-day.empty{background:var(--s3);color:var(--t3)}
-.cal-day.done{background:rgba(200,255,0,0.2);color:var(--lime);border:1px solid rgba(200,255,0,0.3)}
-.cal-day.rest{background:var(--s2);color:var(--t3)}
-.cal-day.today{background:var(--lime);color:#000;font-weight:bold}
-.cal-label{font-size:9px;font-family:var(--mono);color:var(--t3);text-align:center;margin-bottom:4px}
-.cal-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-
-.session-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s}
-.session-card:hover{border-color:rgba(200,255,0,0.3);background:var(--s3)}
-.session-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.session-name{font-weight:500;font-size:15px}
-.session-vol{font-family:var(--mono);font-size:12px;color:var(--t2)}
-.session-tags{display:flex;gap:6px}
-.tag{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:10px}
-.tag.push{background:rgba(56,189,248,0.1);color:var(--sky);border:1px solid rgba(56,189,248,0.2)}
-.tag.pull{background:rgba(251,191,36,0.1);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
-.tag.legs{background:rgba(244,63,94,0.1);color:var(--rose);border:1px solid rgba(244,63,94,0.2)}
-
-.cbtn{width:100%;padding:16px;border:none;border-radius:var(--r);background:var(--lime);color:#000;font-weight:700;cursor:pointer;font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:16px;transition:opacity 0.2s}
-.cbtn:hover{opacity:0.85}
-
-.day-plan{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ex-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
-.ex-name{font-weight:500;font-size:14px;margin-bottom:4px}
-.ex-sets{font-family:var(--mono);font-size:11px;color:var(--t2)}
-.ex-muscle{display:inline-block;font-size:10px;font-family:var(--mono);margin-top:6px;padding:2px 8px;border-radius:8px;background:var(--s3);color:var(--t3)}
-
-.insight{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s2);border-radius:var(--r);border:1px solid var(--bd);margin-bottom:8px}
-.insight-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
-.insight-icon.lime{background:rgba(200,255,0,0.1)}
-.insight-icon.sky{background:rgba(56,189,248,0.1)}
-.insight-icon.rose{background:rgba(244,63,94,0.1)}
-.insight-text{font-size:13px;color:var(--t2);line-height:1.5}
-.insight-text strong{color:var(--t1)}
-
-.toast{position:fixed;bottom:24px;right:24px;background:var(--lime);color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-family:var(--mono);font-size:12px;letter-spacing:1px;display:none;z-index:999}
-
-.macro-wrap{display:flex;gap:6px;margin-top:10px}
-.macro{flex:1;background:var(--s2);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--bd)}
-.macro-val{font-family:var(--display);font-size:24px;letter-spacing:1px}
-.macro-label{font-size:10px;font-family:var(--mono);color:var(--t3);margin-top:2px}
-.macro-val.p{color:var(--sky)}
-.macro-val.c{color:var(--amber)}
-.macro-val.f{color:var(--rose)}
-</style>
-</head>
-<body>
-<div class="app">
-  <div class="hdr">
-    <div class="logo">APEXFIT PRO</div>
-    <div class="hdr-right">
-      <div class="streak-badge"><div class="streak-dot"></div> 14 DAY STREAK</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--t3)">WEEK 7 · PPL</div>
-      <div class="avatar">JD</div>
-    </div>
-  </div>
-
-  <div class="nav">
-    <button class="nb on" onclick="switchTab('plan', this)">Today</button>
-    <button class="nb" onclick="switchTab('analytics', this)">Analytics</button>
-    <button class="nb" onclick="switchTab('prs', this)">PRs &amp; Lifts</button>
-    <button class="nb" onclick="switchTab('history', this)">History</button>
-  </div>
-
-  <!-- TAB: TODAY -->
-  <div class="content active" id="tab-plan">
-    <div class="stat-grid">
-      <div class="stat lime">
-        <div class="stat-val" style="color:var(--lime)">14</div>
-        <div class="stat-label">Day Streak</div>
-        <div class="stat-delta up">↑ Best ever</div>
-      </div>
-      <div class="stat sky">
-        <div class="stat-val" style="color:var(--sky)">4,820</div>
-        <div class="stat-label">Volume Today (kg)</div>
-        <div class="stat-delta up">↑ +340 vs last push</div>
-      </div>
-      <div class="stat amber">
-        <div class="stat-val" style="color:var(--amber)">89%</div>
-        <div class="stat-label">Consistency</div>
-        <div class="stat-delta up">↑ +4% this month</div>
-      </div>
-      <div class="stat rose">
-        <div class="stat-val" style="color:var(--rose)">2,850</div>
-        <div class="stat-label">Calories Burned</div>
-        <div class="stat-delta down">↓ 150 below goal</div>
-      </div>
-    </div>
-
-    <div class="grid-7-5">
-      <div class="card">
-        <div class="section-title">Today's Session — Push A</div>
-        <div class="day-plan">
-          <div class="ex-card"><div class="ex-name">Bench Press</div><div class="ex-sets">4 × 5 @ 90 kg</div><span class="ex-muscle">Chest</span></div>
-          <div class="ex-card"><div class="ex-name">Overhead Press</div><div class="ex-sets">3 × 8 @ 55 kg</div><span class="ex-muscle">Shoulders</span></div>
-          <div class="ex-card"><div class="ex-name">Incline DB Press</div><div class="ex-sets">3 × 10 @ 32 kg</div><span class="ex-muscle">Upper Chest</span></div>
-          <div class="ex-card"><div class="ex-name">Lateral Raises</div><div class="ex-sets">4 × 15 @ 12 kg</div><span class="ex-muscle">Side Delts</span></div>
-          <div class="ex-card"><div class="ex-name">Tricep Pushdown</div><div class="ex-sets">3 × 12 @ 35 kg</div><span class="ex-muscle">Triceps</span></div>
-          <div class="ex-card"><div class="ex-name">Skull Crushers</div><div class="ex-sets">3 × 10 @ 30 kg</div><span class="ex-muscle">Triceps</span></div>
-        </div>
-        <button class="cbtn" onclick="showToast('Session started!')">▶ Start Session</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card">
-          <div class="section-title">Weekly Schedule</div>
-          <div class="cal-labels">
-            <div class="cal-label">M</div><div class="cal-label">T</div><div class="cal-label">W</div>
-            <div class="cal-label">T</div><div class="cal-label">F</div><div class="cal-label">S</div><div class="cal-label">S</div>
-          </div>
-          <div class="cal-grid">
-            <div class="cal-day done">P</div><div class="cal-day done">PL</div><div class="cal-day done">L</div>
-            <div class="cal-day done">PA</div><div class="cal-day today">PU</div><div class="cal-day rest">—</div><div class="cal-day rest">—</div>
-          </div>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <span style="font-size:10px;font-family:var(--mono);color:var(--lime)">● Done</span>
-            <span style="font-size:10px;font-family:var(--mono);color:var(--sky)">● Today</span>
-            <span style="font-size:10px;font-family:var(--mono);color:var(--t3)">— Rest</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="section-title">Nutrition Today</div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <span style="font-family:var(--display);font-size:32px;color:var(--lime)">2,240</span>
-            <span style="font-family:var(--mono);font-size:11px;color:var(--t3)">/ 2,800 kcal</span>
-          </div>
-          <div class="prog-track" style="margin-top:8px;height:4px"><div class="prog-fill" style="width:80%;background:var(--lime)"></div></div>
-          <div class="macro-wrap">
-            <div class="macro"><div class="macro-val p">182g</div><div class="macro-label">Protein</div></div>
-            <div class="macro"><div class="macro-val c">240g</div><div class="macro-label">Carbs</div></div>
-            <div class="macro"><div class="macro-val f">72g</div><div class="macro-label">Fats</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:24px">
-      <div class="section-title">AI Insights</div>
-      <div class="insight">
-        <div class="insight-icon lime">💪</div>
-        <div class="insight-text"><strong>Bench press trending up.</strong> You've increased 7.5 kg over the past 4 weeks. At this rate you'll hit your 100 kg goal in ~3 sessions.</div>
-      </div>
-      <div class="insight">
-        <div class="insight-icon sky">💤</div>
-        <div class="insight-text"><strong>Recovery looking good.</strong> 3 rest days this week. HRV average 62 ms — 8% above your baseline. Ideal for hitting a PR today.</div>
-      </div>
-      <div class="insight">
-        <div class="insight-icon rose">⚠️</div>
-        <div class="insight-text"><strong>Leg volume is lagging.</strong> Push & pull days average 4,200 kg but leg days average only 2,800 kg. Consider adding a set to squats.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: ANALYTICS -->
-  <div class="content" id="tab-analytics">
-    <div class="stat-grid">
-      <div class="stat lime"><div class="stat-val" style="color:var(--lime)">48</div><div class="stat-label">Total Sessions</div><div class="stat-delta up">↑ +6 this month</div></div>
-      <div class="stat sky"><div class="stat-val" style="color:var(--sky)">218k</div><div class="stat-label">Total Volume (kg)</div><div class="stat-delta up">↑ 12% vs last month</div></div>
-      <div class="stat amber"><div class="stat-val" style="color:var(--amber)">62</div><div class="stat-label">Avg Session (min)</div><div class="stat-delta up">↑ +5 min</div></div>
-      <div class="stat rose"><div class="stat-val" style="color:var(--rose)">3</div><div class="stat-label">New PRs This Week</div><div class="stat-delta up">↑ OHP, Bench, Row</div></div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="section-title">Weekly Volume Trend (kg)</div>
-        <div class="chart-wrap" style="height:220px"><canvas id="volumeChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Muscle Group Distribution</div>
-        <div style="display:flex;align-items:center;gap:16px">
-          <div class="chart-wrap" style="height:180px;width:180px;flex-shrink:0"><canvas id="muscleChart"></canvas></div>
-          <div style="flex:1">
-            <div style="margin-bottom:10px">
-              <div class="prog-label"><span>Chest</span><span>28%</span></div>
-              <div class="prog-track"><div class="prog-fill" style="width:28%;background:#c8ff00"></div></div>
-            </div>
-            <div style="margin-bottom:10px">
-              <div class="prog-label"><span>Legs</span><span>25%</span></div>
-              <div class="prog-track"><div class="prog-fill" style="width:25%;background:#38bdf8"></div></div>
-            </div>
-            <div style="margin-bottom:10px">
-              <div class="prog-label"><span>Back</span><span>22%</span></div>
-              <div class="prog-track"><div class="prog-fill" style="width:22%;background:#fbbf24"></div></div>
-            </div>
-            <div style="margin-bottom:10px">
-              <div class="prog-label"><span>Shoulders</span><span>15%</span></div>
-              <div class="prog-track"><div class="prog-fill" style="width:15%;background:#f43f5e"></div></div>
-            </div>
-            <div>
-              <div class="prog-label"><span>Arms</span><span>10%</span></div>
-              <div class="prog-track"><div class="prog-fill" style="width:10%;background:#a78bfa"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-3">
-      <div class="card">
-        <div class="section-title">Strength Progression — Bench</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="benchChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Strength Progression — Squat</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="squatChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Strength Progression — Deadlift</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="deadliftChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="section-title">Session Duration by Day</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="durationChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Monthly Consistency (%)</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="consistencyChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: PRs & LIFTS -->
-  <div class="content" id="tab-prs">
-    <div class="grid-7-5">
-      <div class="card">
-        <div class="section-title">Personal Records</div>
-        <div class="lift-row">
-          <div><div class="lift-name">Bench Press</div><div class="lift-muscle">Chest · Flat Barbell</div></div>
-          <div style="text-align:right">
-            <div class="lift-weight">92.5 kg</div>
-            <div class="lift-badge">PR — 3 days ago</div>
-          </div>
-        </div>
-        <div class="lift-row">
-          <div><div class="lift-name">Squat</div><div class="lift-muscle">Quads, Glutes · Barbell</div></div>
-          <div style="text-align:right">
-            <div class="lift-weight" style="color:var(--sky)">120 kg</div>
-            <div class="lift-badge" style="background:rgba(56,189,248,0.1);color:var(--sky);border-color:rgba(56,189,248,0.2)">PR — 1 week ago</div>
-          </div>
-        </div>
-        <div class="lift-row">
-          <div><div class="lift-name">Deadlift</div><div class="lift-muscle">Posterior Chain · Conventional</div></div>
-          <div style="text-align:right">
-            <div class="lift-weight" style="color:var(--amber)">145 kg</div>
-            <div class="lift-badge" style="background:rgba(251,191,36,0.1);color:var(--amber);border-color:rgba(251,191,36,0.2)">PR — 2 weeks ago</div>
-          </div>
-        </div>
-        <div class="lift-row">
-          <div><div class="lift-name">Overhead Press</div><div class="lift-muscle">Shoulders · Standing Barbell</div></div>
-          <div style="text-align:right">
-            <div class="lift-weight" style="color:var(--rose)">60 kg</div>
-            <div class="lift-badge" style="background:rgba(244,63,94,0.1);color:var(--rose);border-color:rgba(244,63,94,0.2)">PR — 5 days ago</div>
-          </div>
-        </div>
-        <div class="lift-row">
-          <div><div class="lift-name">Barbell Row</div><div class="lift-muscle">Back · Pendlay</div></div>
-          <div style="text-align:right">
-            <div class="lift-weight" style="color:#a78bfa">80 kg</div>
-            <div class="lift-badge" style="background:rgba(167,139,250,0.1);color:#a78bfa;border-color:rgba(167,139,250,0.2)">PR — 4 days ago</div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card">
-          <div class="section-title">PR Progress to Goals</div>
-          <div class="prog-bar-wrap">
-            <div class="prog-label"><span>Bench</span><span>92.5 / 100 kg</span></div>
-            <div class="prog-track"><div class="prog-fill" style="width:92.5%;background:var(--lime)"></div></div>
-          </div>
-          <div class="prog-bar-wrap">
-            <div class="prog-label"><span>Squat</span><span>120 / 140 kg</span></div>
-            <div class="prog-track"><div class="prog-fill" style="width:85.7%;background:var(--sky)"></div></div>
-          </div>
-          <div class="prog-bar-wrap">
-            <div class="prog-label"><span>Deadlift</span><span>145 / 180 kg</span></div>
-            <div class="prog-track"><div class="prog-fill" style="width:80.6%;background:var(--amber)"></div></div>
-          </div>
-          <div class="prog-bar-wrap">
-            <div class="prog-label"><span>OHP</span><span>60 / 80 kg</span></div>
-            <div class="prog-track"><div class="prog-fill" style="width:75%;background:var(--rose)"></div></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="section-title">Strength Score</div>
-          <div style="text-align:center;padding:12px 0">
-            <div style="font-family:var(--display);font-size:64px;letter-spacing:4px;color:var(--lime);line-height:1">724</div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:6px">WILKS COEFFICIENT</div>
-            <div style="font-family:var(--mono);font-size:11px;color:var(--lime);margin-top:4px">↑ +18 this month</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: HISTORY -->
-  <div class="content" id="tab-history">
-    <div class="section-title">Recent Sessions</div>
-    <div class="session-card" onclick="showToast('Loading session detail...')">
-      <div class="session-top">
-        <div>
-          <div class="session-name">Push A — Chest &amp; Triceps</div>
-          <div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">Mon Apr 28 · 65 min</div>
-        </div>
-        <div class="session-vol">4,480 kg total</div>
-      </div>
-      <div class="session-tags"><span class="tag push">PUSH</span></div>
-    </div>
-    <div class="session-card" onclick="showToast('Loading session detail...')">
-      <div class="session-top">
-        <div>
-          <div class="session-name">Pull A — Back &amp; Biceps</div>
-          <div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">Tue Apr 29 · 70 min</div>
-        </div>
-        <div class="session-vol">3,920 kg total</div>
-      </div>
-      <div class="session-tags"><span class="tag pull">PULL</span></div>
-    </div>
-    <div class="session-card" onclick="showToast('Loading session detail...')">
-      <div class="session-top">
-        <div>
-          <div class="session-name">Legs A — Squat &amp; Hamstrings</div>
-          <div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">Wed Apr 30 · 75 min</div>
-        </div>
-        <div class="session-vol">5,200 kg total</div>
-      </div>
-      <div class="session-tags"><span class="tag legs">LEGS</span></div>
-    </div>
-    <div class="session-card" onclick="showToast('Loading session detail...')">
-      <div class="session-top">
-        <div>
-          <div class="session-name">Push B — Shoulders &amp; Chest</div>
-          <div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">Thu May 1 · 60 min</div>
-        </div>
-        <div class="session-vol">3,750 kg total</div>
-      </div>
-      <div class="session-tags"><span class="tag push">PUSH</span></div>
-    </div>
-
-    <div style="margin-top:24px">
-      <div class="section-title">Volume by Session Type</div>
-      <div class="card" style="margin-top:0">
-        <div class="chart-wrap" style="height:220px"><canvas id="historyChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
 <script>
+// 1. Configuration & Global State
 const RAILWAY_API_URL = "https://fastapi-production-cee9.up.railway.app/save-workout";
 
+// Define S globally so the console and buttons can see it
+window.S = {
+  tab: 'plan',
+  logs: [
+    { name: "Bench Press", sets: "4 × 5 @ 90 kg", muscle: "Chest" },
+    { name: "Overhead Press", sets: "3 × 8 @ 55 kg", muscle: "Shoulders" }
+  ],
+  isSessionActive: false
+};
+
+// 2. Tab Navigation
 function switchTab(tab, btn) {
   document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
-  document.getElementById('tab-' + tab).classList.add('active');
+  
+  const targetTab = document.getElementById('tab-' + tab);
+  if (targetTab) {
+    targetTab.classList.add('active');
+    S.tab = tab;
+  }
+  
   btn.classList.add('on');
   if (tab === 'analytics') setTimeout(initAnalyticsCharts, 50);
   if (tab === 'history') setTimeout(initHistoryChart, 50);
 }
 
+// 3. Session Logic
+function startSession() {
+  S.isSessionActive = true;
+  showToast('Session started! Go crush it.');
+  
+  // Change the button to a "Complete" button
+  const btn = document.querySelector('.cbtn');
+  btn.textContent = "🏁 Complete Session";
+  btn.style.background = "var(--sky)";
+  btn.onclick = completeSession; 
+}
+
+async function completeSession() {
+  showToast('Syncing with Railway...');
+  
+  const workoutData = {
+    sessionDate: new Date().toLocaleString(),
+    data: S.logs,
+    totalVolume: 4820 // Hardcoded for now based on your UI
+  };
+
+  try {
+    const response = await fetch(RAILWAY_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(workoutData)
+    });
+
+    if (response.ok) {
+      showToast('Cloud Sync Successful! ✓');
+      // Reset button
+      const btn = document.querySelector('.cbtn');
+      btn.textContent = "▶ Start Session";
+      btn.style.background = "var(--lime)";
+      btn.onclick = startSession;
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    console.error("Sync failed:", err);
+    showToast('Sync Failed - Check Console');
+  }
+}
+
 function showToast(m) {
   const t = document.getElementById('toast');
-  t.textContent = m; t.style.display = 'block';
+  t.textContent = m; 
+  t.style.display = 'block';
   setTimeout(() => t.style.display = 'none', 2500);
 }
 
-const weeks = ['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
-const chartDefaults = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { color: 'rgba(100,100,160,0.1)' }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 10 } } },
-    y: { grid: { color: 'rgba(100,100,160,0.1)' }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 10 } } }
-  }
-};
-
-let chartsInit = false;
-function initAnalyticsCharts() {
-  if (chartsInit) return;
-  chartsInit = true;
-
-  new Chart(document.getElementById('volumeChart'), {
-    type: 'line',
-    data: {
-      labels: weeks,
-      datasets: [{ label: 'Volume', data: [3200,3500,3100,3800,4100,3900,4500,4820], borderColor: '#c8ff00', backgroundColor: 'rgba(200,255,0,0.05)', fill: true, tension: 0.4, pointBackgroundColor: '#c8ff00', pointRadius: 4 }]
-    },
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
-  });
-
-  new Chart(document.getElementById('muscleChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Chest','Legs','Back','Shoulders','Arms'],
-      datasets: [{ data: [28,25,22,15,10], backgroundColor: ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#a78bfa'], borderWidth: 0 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' }
-  });
-
-  const liftOpts = {
-    ...chartDefaults,
-    scales: {
-      x: { grid: { display: false }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 9 } } },
-      y: { grid: { color: 'rgba(100,100,160,0.1)' }, ticks: { color: '#8080a0', font: { family: 'DM Mono', size: 9 } } }
-    }
-  };
-
-  new Chart(document.getElementById('benchChart'), {
-    type: 'line',
-    data: { labels: weeks, datasets: [{ data: [75,77.5,77.5,80,82.5,85,87.5,90], borderColor: '#c8ff00', backgroundColor: 'rgba(200,255,0,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#c8ff00' }] },
-    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
-  });
-
-  new Chart(document.getElementById('squatChart'), {
-    type: 'line',
-    data: { labels: weeks, datasets: [{ data: [100,102.5,105,107.5,110,112.5,115,120], borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#38bdf8' }] },
-    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
-  });
-
-  new Chart(document.getElementById('deadliftChart'), {
-    type: 'line',
-    data: { labels: weeks, datasets: [{ data: [120,125,125,130,132.5,137.5,140,145], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.06)', fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#fbbf24' }] },
-    options: { ...liftOpts, responsive: true, maintainAspectRatio: false }
-  });
-
-  new Chart(document.getElementById('durationChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-      datasets: [{ data: [65,70,75,60,0,0,0], backgroundColor: ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#404060','#404060','#404060'], borderRadius: 4 }]
-    },
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
-  });
-
-  new Chart(document.getElementById('consistencyChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Dec','Jan','Feb','Mar','Apr','May'],
-      datasets: [{ data: [70,75,68,82,86,89], backgroundColor: 'rgba(200,255,0,0.15)', borderColor: '#c8ff00', borderWidth: 1, borderRadius: 4 }]
-    },
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, max: 100 } } }
-  });
-}
-
-let historyInit = false;
-function initHistoryChart() {
-  if (historyInit) return;
-  historyInit = true;
-  new Chart(document.getElementById('historyChart'), {
-    type: 'bar',
-    data: {
-      labels: ['Week 4','Week 5','Week 6','Week 7'],
-      datasets: [
-        { label: 'Push', data: [3800,4100,4200,4480], backgroundColor: '#38bdf8', borderRadius: 3 },
-        { label: 'Pull', data: [3600,3700,3850,3920], backgroundColor: '#fbbf24', borderRadius: 3 },
-        { label: 'Legs', data: [4200,4600,4900,5200], backgroundColor: '#f43f5e', borderRadius: 3 }
-      ]
-    },
-    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#8080a0', font: { family: 'DM Mono', size: 10 }, boxWidth: 10 } } } }
-  });
-}
+// ... Keep your existing Chart.js init functions (initAnalyticsCharts, etc.) below this ...
 </script>
-</body>
-</html>
