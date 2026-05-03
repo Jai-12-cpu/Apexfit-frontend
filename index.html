@@ -4,29 +4,92 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ApexFit Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#080810;--s1:#0e0e18;--s2:#13131f;--s3:#1a1a28;--s4:#222235;
-  --lime:#c8ff00;--sky:#38bdf8;--rose:#f43f5e;--amber:#fbbf24;--purple:#a78bfa;
+  --lime:#c8ff00;--sky:#38bdf8;--rose:#f43f5e;--amber:#fbbf24;--purple:#a78bfa;--green:#34d399;
   --t1:#f0f0fa;--t2:#8080a0;--t3:#404060;--bd:rgba(100,100,160,0.15);
   --r:10px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Bebas Neue',sans-serif;
 }
 body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
-.app{display:flex;flex-direction:column;min-height:100vh}
 
+/* ── AUTH SCREEN ── */
+#auth-screen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow:hidden}
+#auth-screen::before{content:'';position:absolute;top:-20%;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(200,255,0,0.06) 0%,transparent 70%);pointer-events:none}
+#auth-screen::after{content:'';position:absolute;bottom:-10%;right:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.05) 0%,transparent 70%);pointer-events:none}
+.auth-box{width:420px;background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:40px;position:relative;z-index:1;animation:fadeUp 0.5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-family:var(--display);font-size:32px;color:var(--lime);letter-spacing:8px;text-align:center;margin-bottom:6px}
+.auth-sub{text-align:center;font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:3px;margin-bottom:32px}
+.auth-tabs{display:flex;background:var(--s2);border-radius:8px;padding:3px;margin-bottom:24px}
+.auth-tab{flex:1;padding:10px;border:none;background:none;color:var(--t3);font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:6px;transition:all 0.2s}
+.auth-tab.on{background:var(--s3);color:var(--lime)}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px}
+.field input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;color:var(--t1);font-family:var(--sans);font-size:14px;outline:none;transition:border-color 0.2s}
+.field input:focus{border-color:rgba(200,255,0,0.4)}
+.field input::placeholder{color:var(--t3)}
+.auth-btn{width:100%;padding:14px;border:none;border-radius:8px;background:var(--lime);color:#000;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:opacity 0.2s}
+.auth-btn:hover{opacity:0.85}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+.or-divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:2px}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--bd)}
+.google-btn{width:100%;padding:13px;border:1px solid var(--bd);border-radius:8px;background:var(--s2);color:var(--t1);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s}
+.google-btn:hover{border-color:rgba(200,255,0,0.3);background:var(--s3)}
+.google-icon{width:18px;height:18px}
+.auth-error{background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.3);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--rose);margin-bottom:16px;display:none}
+
+/* ── GOAL WIZARD ── */
+#goal-wizard{position:fixed;inset:0;z-index:999;display:none;background:rgba(8,8,16,0.95);align-items:center;justify-content:center;overflow-y:auto;padding:40px 20px}
+.wizard-box{width:640px;max-width:100%;background:var(--s1);border:1px solid var(--bd);border-radius:16px;padding:40px;animation:fadeUp 0.4s ease}
+.wizard-step{display:none}
+.wizard-step.active{display:block}
+.wizard-title{font-family:var(--display);font-size:28px;letter-spacing:4px;color:var(--lime);margin-bottom:6px}
+.wizard-desc{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:1px;margin-bottom:28px;line-height:1.7}
+.muscle-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.muscle-chip{padding:12px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--s2);text-align:center;cursor:pointer;transition:all 0.2s;font-family:var(--mono);font-size:10px;color:var(--t2);letter-spacing:1px;text-transform:uppercase}
+.muscle-chip:hover{border-color:rgba(200,255,0,0.3)}
+.muscle-chip.sel{border-color:var(--lime);background:rgba(200,255,0,0.08);color:var(--lime)}
+.muscle-chip .muscle-emoji{display:block;font-size:22px;margin-bottom:6px}
+.ex-builder{margin-bottom:16px}
+.ex-row{display:grid;grid-template-columns:1fr 60px 60px 80px auto;gap:8px;align-items:center;margin-bottom:8px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px}
+.ex-row input{background:none;border:none;color:var(--t1);font-family:var(--sans);font-size:13px;outline:none;width:100%}
+.ex-row input[type=number]{color:var(--lime);font-family:var(--mono);font-size:12px;text-align:center;width:100%}
+.ex-row-label{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
+.add-ex-btn{width:100%;padding:11px;border:1px dashed var(--t3);border-radius:8px;background:none;color:var(--t2);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all 0.2s;margin-bottom:16px}
+.add-ex-btn:hover{border-color:var(--lime);color:var(--lime)}
+.del-btn{background:none;border:none;color:var(--t3);font-size:16px;cursor:pointer;padding:0 4px;line-height:1}
+.del-btn:hover{color:var(--rose)}
+.wizard-nav{display:flex;gap:10px;margin-top:8px}
+.wiz-btn{flex:1;padding:14px;border:none;border-radius:8px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s}
+.wiz-btn.primary{background:var(--lime);color:#000}
+.wiz-btn.secondary{background:var(--s2);border:1px solid var(--bd);color:var(--t2)}
+.wiz-btn:hover{opacity:0.85}
+.prog-dots{display:flex;gap:6px;justify-content:center;margin-bottom:24px}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:var(--s3)}
+.prog-dot.on{background:var(--lime)}
+
+/* ── MAIN APP ── */
+.app{display:flex;flex-direction:column;min-height:100vh}
 .hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--bd);background:rgba(8,8,16,0.95);position:sticky;top:0;z-index:100}
 .logo{font-family:var(--display);font-size:26px;color:var(--lime);letter-spacing:6px}
 .hdr-right{display:flex;align-items:center;gap:16px}
 .streak-badge{display:flex;align-items:center;gap:6px;background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.25);border-radius:20px;padding:6px 14px;font-size:12px;font-family:var(--mono);color:var(--lime)}
 .streak-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#c8ff00,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:500;font-size:12px;color:#000;font-family:var(--mono)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#c8ff00,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#000;font-family:var(--mono);cursor:pointer;position:relative}
+.avatar-menu{position:absolute;top:44px;right:0;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:6px;min-width:160px;display:none;z-index:200}
+.avatar-menu.open{display:block}
+.avatar-menu-item{padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--t2);cursor:pointer;border-radius:6px;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s}
+.avatar-menu-item:hover{background:var(--s2);color:var(--t1)}
+.avatar-menu-item.danger:hover{color:var(--rose)}
 
-.nav{display:flex;gap:2px;padding:0 32px;background:var(--s1);border-bottom:1px solid var(--bd)}
-.nb{padding:14px 22px;border:none;background:none;color:var(--t3);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all 0.2s}
+.nav{display:flex;gap:2px;padding:0 32px;background:var(--s1);border-bottom:1px solid var(--bd);overflow-x:auto}
+.nb{padding:14px 20px;border:none;background:none;color:var(--t3);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;flex-shrink:0}
 .nb:hover{color:var(--t2)}
 .nb.on{color:var(--lime);border-bottom-color:var(--lime)}
 
@@ -38,10 +101,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
 .stat{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden}
 .stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.stat.lime::before{background:var(--lime)}
-.stat.sky::before{background:var(--sky)}
-.stat.rose::before{background:var(--rose)}
-.stat.amber::before{background:var(--amber)}
+.stat.lime::before{background:var(--lime)}.stat.sky::before{background:var(--sky)}
+.stat.rose::before{background:var(--rose)}.stat.amber::before{background:var(--amber)}
 .stat-val{font-family:var(--display);font-size:36px;letter-spacing:2px;line-height:1}
 .stat-label{font-size:11px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;margin-top:6px;letter-spacing:1px}
 .stat-delta{font-size:11px;margin-top:8px;font-family:var(--mono);color:var(--t3)}
@@ -50,7 +111,7 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
 .grid-7-5{display:grid;grid-template-columns:7fr 5fr;gap:16px;margin-bottom:24px}
-.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:22px}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:22px;margin-bottom:0}
 
 .chart-wrap{position:relative;width:100%}
 
@@ -67,16 +128,17 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
 .lift-muscle{font-size:11px;font-family:var(--mono);color:var(--t3)}
 
 .session-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px;transition:all 0.2s}
-.session-card:hover{border-color:rgba(200,255,0,0.3);background:var(--s3)}
+.session-card:hover{border-color:rgba(200,255,0,0.2)}
 .session-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .session-name{font-weight:500;font-size:15px}
 .session-vol{font-family:var(--mono);font-size:12px;color:var(--t2)}
-.session-tags{display:flex;gap:6px}
+.session-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tag{font-size:10px;font-family:var(--mono);padding:3px 8px;border-radius:10px}
 .tag.push{background:rgba(56,189,248,0.1);color:var(--sky);border:1px solid rgba(56,189,248,0.2)}
 .tag.pull{background:rgba(251,191,36,0.1);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
 .tag.legs{background:rgba(244,63,94,0.1);color:var(--rose);border:1px solid rgba(244,63,94,0.2)}
 .tag.other{background:rgba(167,139,250,0.1);color:var(--purple);border:1px solid rgba(167,139,250,0.2)}
+.mood-tag{font-size:11px}
 
 .cbtn{width:100%;padding:16px;border:none;border-radius:var(--r);background:var(--lime);color:#000;font-weight:700;cursor:pointer;font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-top:16px;transition:opacity 0.2s}
 .cbtn:hover{opacity:0.85}
@@ -87,72 +149,234 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
 .ex-sets{font-family:var(--mono);font-size:11px;color:var(--t2)}
 .ex-muscle{display:inline-block;font-size:10px;font-family:var(--mono);margin-top:6px;padding:2px 8px;border-radius:8px;background:var(--s3);color:var(--t3)}
 
-.muscle-legend{flex:1}
-.muscle-legend-row{margin-bottom:10px}
+/* AI SUGGESTION */
+.ai-card{background:linear-gradient(135deg,rgba(200,255,0,0.04),rgba(56,189,248,0.04));border:1px solid rgba(200,255,0,0.2);border-radius:var(--r);padding:22px;margin-bottom:24px;position:relative;overflow:hidden}
+.ai-card::before{content:'AI';position:absolute;top:16px;right:20px;font-family:var(--display);font-size:48px;color:rgba(200,255,0,0.05);letter-spacing:4px;pointer-events:none}
+.ai-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ai-icon{width:32px;height:32px;border-radius:8px;background:rgba(200,255,0,0.1);display:flex;align-items:center;justify-content:center;font-size:16px}
+.ai-title{font-family:var(--mono);font-size:11px;color:var(--lime);letter-spacing:2px;text-transform:uppercase}
+.ai-body{font-size:14px;color:var(--t2);line-height:1.7}
+.ai-body strong{color:var(--t1)}
+.ai-refresh{background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.2);border-radius:20px;padding:6px 14px;font-family:var(--mono);font-size:10px;color:var(--lime);cursor:pointer;letter-spacing:1px;margin-top:14px;display:inline-block;transition:all 0.2s}
+.ai-refresh:hover{background:rgba(200,255,0,0.15)}
+.ai-loading{display:flex;gap:4px;align-items:center;padding:8px 0}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--lime);animation:aiPulse 1.2s infinite}
+.ai-dot:nth-child(2){animation-delay:0.2s}
+.ai-dot:nth-child(3){animation-delay:0.4s}
+@keyframes aiPulse{0%,80%,100%{opacity:0.2}40%{opacity:1}}
 
-.toast{position:fixed;bottom:24px;right:24px;background:var(--lime);color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-family:var(--mono);font-size:12px;letter-spacing:1px;display:none;z-index:999}
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bd)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:var(--display);font-size:22px;letter-spacing:1px;color:var(--t3);width:32px;text-align:center;flex-shrink:0}
+.lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
+.lb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--s3),var(--s4));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0}
+.lb-avatar.me{background:linear-gradient(135deg,#c8ff00,#38bdf8);color:#000}
+.lb-name{flex:1;font-weight:500;font-size:14px}
+.lb-name.me{color:var(--lime)}
+.lb-you{font-family:var(--mono);font-size:9px;color:var(--lime);background:rgba(200,255,0,0.1);border:1px solid rgba(200,255,0,0.2);border-radius:10px;padding:2px 6px;margin-left:6px}
+.lb-vol{font-family:var(--display);font-size:20px;letter-spacing:1px;color:var(--t1)}
+.lb-sessions{font-family:var(--mono);font-size:10px;color:var(--t3)}
 
-/* Loading skeleton */
-.skeleton{background:linear-gradient(90deg,var(--s3) 25%,var(--s4) 50%,var(--s3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;height:36px;width:80px}
+/* JOURNAL */
+.journal-entry{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.journal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.journal-session{font-weight:500;font-size:14px}
+.journal-date{font-family:var(--mono);font-size:10px;color:var(--t3)}
+.journal-note{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:8px}
+.journal-meta{display:flex;gap:8px;flex-wrap:wrap}
+.energy-bar{display:flex;gap:3px}
+.energy-pip{width:12px;height:4px;border-radius:2px;background:var(--s4)}
+.energy-pip.on{background:var(--lime)}
+
+/* PROGRESS PHOTOS */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.photo-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;position:relative}
+.photo-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.photo-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(8,8,16,0.9));padding:12px;font-family:var(--mono);font-size:10px;color:var(--t2)}
+.photo-weight{font-family:var(--display);font-size:18px;color:var(--lime);letter-spacing:1px}
+.photo-upload{border:2px dashed var(--t3);border-radius:var(--r);padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:24px}
+.photo-upload:hover{border-color:var(--lime)}
+.photo-upload input{display:none}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(8,8,16,0.85);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:28px;width:460px;max-width:100%;animation:fadeUp 0.3s ease}
+.modal-title{font-family:var(--mono);font-size:11px;color:var(--lime);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.modal-close{float:right;background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;margin-top:-4px}
+.modal-close:hover{color:var(--t1)}
+textarea.field-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;color:var(--t1);font-family:var(--sans);font-size:13px;resize:vertical;min-height:100px;outline:none;transition:border-color 0.2s}
+textarea.field-input:focus{border-color:rgba(200,255,0,0.4)}
+.mood-picker{display:flex;gap:8px;margin-bottom:16px}
+.mood-opt{padding:10px 16px;border:1px solid var(--bd);border-radius:20px;background:var(--s2);cursor:pointer;font-size:18px;transition:all 0.2s}
+.mood-opt:hover,.mood-opt.sel{border-color:var(--lime);background:rgba(200,255,0,0.08)}
+.energy-picker{display:flex;gap:6px;margin-bottom:20px}
+.e-btn{width:36px;height:36px;border:1px solid var(--bd);border-radius:8px;background:var(--s2);color:var(--t2);font-family:var(--mono);font-size:12px;cursor:pointer;transition:all 0.2s}
+.e-btn:hover,.e-btn.sel{border-color:var(--lime);color:var(--lime);background:rgba(200,255,0,0.08)}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--lime);color:#000;padding:12px 24px;border-radius:30px;font-weight:700;font-family:var(--mono);font-size:12px;letter-spacing:1px;display:none;z-index:999;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.no-data{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase}
+.dot-color{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.skeleton{background:linear-gradient(90deg,var(--s3) 25%,var(--s4) 50%,var(--s3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-.no-data{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase}
+.goal-banner{background:linear-gradient(135deg,rgba(200,255,0,0.06),rgba(56,189,248,0.04));border:1px solid rgba(200,255,0,0.15);border-radius:var(--r);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between}
+.goal-banner-text{font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1.6}
+.goal-banner-text strong{color:var(--lime);display:block;margin-bottom:2px}
+.edit-goal-btn{background:rgba(200,255,0,0.08);border:1px solid rgba(200,255,0,0.2);border-radius:20px;padding:6px 14px;font-family:var(--mono);font-size:10px;color:var(--lime);cursor:pointer;letter-spacing:1px;white-space:nowrap;transition:all 0.2s}
+.edit-goal-btn:hover{background:rgba(200,255,0,0.15)}
 
-/* Muscle split legend dots */
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.friend-input-row{display:flex;gap:10px;margin-bottom:24px}
+.friend-input-row input{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:11px 14px;color:var(--t1);font-family:var(--sans);font-size:13px;outline:none}
+.friend-input-row input:focus{border-color:rgba(200,255,0,0.4)}
+.friend-add-btn{padding:11px 18px;border:none;border-radius:8px;background:var(--lime);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="app">
+
+<!-- ── AUTH SCREEN ──────────────────────────────────────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">APEXFIT</div>
+    <div class="auth-sub">TRAIN SMARTER · TRACK EVERYTHING</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" onclick="authMode('login')">Sign In</button>
+      <button class="auth-tab" onclick="authMode('register')">Create Account</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="field" id="name-field" style="display:none">
+      <label>Full Name</label>
+      <input type="text" id="auth-name" placeholder="John Doe">
+    </div>
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="auth-email" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••">
+    </div>
+    <button class="auth-btn" id="auth-submit-btn" onclick="handleAuth()">SIGN IN</button>
+    <div class="or-divider">OR</div>
+    <button class="google-btn" onclick="handleGoogleAuth()">
+      <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<!-- ── GOAL WIZARD ──────────────────────────────────────────────────────────── -->
+<div id="goal-wizard">
+  <div class="wizard-box">
+    <div class="prog-dots">
+      <div class="prog-dot on" id="dot-0"></div>
+      <div class="prog-dot" id="dot-1"></div>
+      <div class="prog-dot" id="dot-2"></div>
+    </div>
+
+    <!-- Step 0: Pick muscles -->
+    <div class="wizard-step active" id="wiz-step-0">
+      <div class="wizard-title">WHAT'S YOUR TARGET?</div>
+      <div class="wizard-desc">Select the muscle groups you want to focus on. You can always change this later from settings.</div>
+      <div class="muscle-grid">
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Chest')"><span class="muscle-emoji">💪</span>Chest</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Back')"><span class="muscle-emoji">🏋️</span>Back</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Shoulders')"><span class="muscle-emoji">🔝</span>Shoulders</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Legs')"><span class="muscle-emoji">🦵</span>Legs</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Arms')"><span class="muscle-emoji">💪</span>Arms</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Core')"><span class="muscle-emoji">🎯</span>Core</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Glutes')"><span class="muscle-emoji">🍑</span>Glutes</div>
+        <div class="muscle-chip" onclick="toggleMuscle(this,'Cardio')"><span class="muscle-emoji">❤️</span>Cardio</div>
+      </div>
+      <div class="wizard-nav">
+        <button class="wiz-btn primary" onclick="wizNext()">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Build exercise plan -->
+    <div class="wizard-step" id="wiz-step-1">
+      <div class="wizard-title">BUILD YOUR PLAN</div>
+      <div class="wizard-desc">Add exercises with your target sets, reps, and starting weight. Fully editable any time.</div>
+      <div style="display:grid;grid-template-columns:1fr 60px 60px 80px 28px;gap:8px;padding:0 14px;margin-bottom:8px">
+        <div class="ex-row-label">Exercise</div>
+        <div class="ex-row-label" style="text-align:center">Sets</div>
+        <div class="ex-row-label" style="text-align:center">Reps</div>
+        <div class="ex-row-label" style="text-align:center">Weight(kg)</div>
+        <div></div>
+      </div>
+      <div id="ex-builder-list"></div>
+      <button class="add-ex-btn" onclick="addExerciseRow()">+ ADD EXERCISE</button>
+      <div class="wizard-nav">
+        <button class="wiz-btn secondary" onclick="wizBack()">← BACK</button>
+        <button class="wiz-btn primary" onclick="wizNext()">NEXT →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Confirm -->
+    <div class="wizard-step" id="wiz-step-2">
+      <div class="wizard-title">YOU'RE SET.</div>
+      <div class="wizard-desc">Your personalised plan is ready. ApexFit's AI will suggest workouts based on your goals and track your progress. Let's go.</div>
+      <div id="wiz-summary" style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:24px;font-family:var(--mono);font-size:11px;color:var(--t2);line-height:2"></div>
+      <div class="wizard-nav">
+        <button class="wiz-btn secondary" onclick="wizBack()">← BACK</button>
+        <button class="wiz-btn primary" onclick="saveGoalsAndLaunch()">🚀 LAUNCH APEXFIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ─────────────────────────────────────────────────────────────── -->
+<div class="app" id="main-app" style="display:none">
   <div class="hdr">
     <div class="logo">APEXFIT PRO</div>
     <div class="hdr-right">
-      <div class="streak-badge"><div class="streak-dot"></div> <span id="hdr-streak">— DAY STREAK</span></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--t3)" id="hdr-program">PPL</div>
-      <div class="avatar">JD</div>
+      <div class="streak-badge"><div class="streak-dot"></div><span id="hdr-sessions">— SESSIONS</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--t3)" id="hdr-info">PPL</div>
+      <div style="position:relative">
+        <div class="avatar" id="user-avatar" onclick="toggleAvatarMenu()">JD</div>
+        <div class="avatar-menu" id="avatar-menu">
+          <div class="avatar-menu-item" onclick="openGoalWizard()">✏️ Edit Goals</div>
+          <div class="avatar-menu-item" onclick="switchTab('journal',document.querySelector('.nb[data-tab=journal]'))">📓 Journal</div>
+          <div class="avatar-menu-item danger" onclick="logout()">⎋ Sign Out</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="nav">
-    <button class="nb on" onclick="switchTab('plan', this)">Today</button>
-    <button class="nb" onclick="switchTab('analytics', this)">Analytics</button>
-    <button class="nb" onclick="switchTab('prs', this)">PRs &amp; Lifts</button>
-    <button class="nb" onclick="switchTab('history', this)">History</button>
+    <button class="nb on" data-tab="plan" onclick="switchTab('plan',this)">Today</button>
+    <button class="nb" data-tab="analytics" onclick="switchTab('analytics',this)">Analytics</button>
+    <button class="nb" data-tab="prs" onclick="switchTab('prs',this)">PRs &amp; Lifts</button>
+    <button class="nb" data-tab="history" onclick="switchTab('history',this)">History</button>
+    <button class="nb" data-tab="leaderboard" onclick="switchTab('leaderboard',this)">🏆 Leaderboard</button>
+    <button class="nb" data-tab="journal" onclick="switchTab('journal',this)">Journal</button>
+    <button class="nb" data-tab="photos" onclick="switchTab('photos',this)">Progress</button>
   </div>
 
-  <!-- ─── TAB: TODAY ─────────────────────────────────────────────────────── -->
+  <!-- TODAY -->
   <div class="content active" id="tab-plan">
-    <div class="stat-grid">
-      <div class="stat lime">
-        <div class="stat-val" style="color:var(--lime)" id="today-sessions">—</div>
-        <div class="stat-label">Total Sessions</div>
-        <div class="stat-delta" id="today-sessions-d"></div>
-      </div>
-      <div class="stat sky">
-        <div class="stat-val" style="color:var(--sky)" id="today-volume">—</div>
-        <div class="stat-label">Total Volume (kg)</div>
-        <div class="stat-delta" id="today-volume-d"></div>
-      </div>
-      <div class="stat amber">
-        <div class="stat-val" style="color:var(--amber)" id="today-avg-dur">—</div>
-        <div class="stat-label">Avg Session (min)</div>
-        <div class="stat-delta" id="today-dur-d"></div>
-      </div>
-      <div class="stat rose">
-        <div class="stat-val" style="color:var(--rose)" id="today-sets">—</div>
-        <div class="stat-label">Total Sets Logged</div>
-        <div class="stat-delta" id="today-sets-d"></div>
+    <div id="goal-banner-area"></div>
+    <div id="ai-suggestion-area">
+      <div class="ai-card">
+        <div class="ai-header"><div class="ai-icon">🤖</div><div class="ai-title">AI Workout Coach</div></div>
+        <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
       </div>
     </div>
-
+    <div class="stat-grid">
+      <div class="stat lime"><div class="stat-val" style="color:var(--lime)" id="today-sessions">—</div><div class="stat-label">Total Sessions</div></div>
+      <div class="stat sky"><div class="stat-val" style="color:var(--sky)" id="today-volume">—</div><div class="stat-label">Total Volume (kg)</div></div>
+      <div class="stat amber"><div class="stat-val" style="color:var(--amber)" id="today-avg-dur">—</div><div class="stat-label">Avg Session (min)</div></div>
+      <div class="stat rose"><div class="stat-val" style="color:var(--rose)" id="today-sets">—</div><div class="stat-label">Total Sets Logged</div></div>
+    </div>
     <div class="grid-7-5">
       <div class="card">
         <div class="section-title" id="latest-session-title">Last Session</div>
         <div class="day-plan" id="latest-exercises">
-          <div class="ex-card"><div class="skeleton"></div></div>
-          <div class="ex-card"><div class="skeleton"></div></div>
-          <div class="ex-card"><div class="skeleton"></div></div>
-          <div class="ex-card"><div class="skeleton"></div></div>
+          <div class="ex-card"><div class="skeleton" style="height:60px"></div></div>
+          <div class="ex-card"><div class="skeleton" style="height:60px"></div></div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
@@ -161,14 +385,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
           <div class="chart-wrap" style="height:160px"><canvas id="miniVolumeChart"></canvas></div>
         </div>
         <div class="card">
-          <div class="section-title">Session Type Breakdown</div>
+          <div class="section-title">Session Type Split</div>
           <div class="chart-wrap" style="height:140px"><canvas id="typeChart"></canvas></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ─── TAB: ANALYTICS ────────────────────────────────────────────────── -->
+  <!-- ANALYTICS -->
   <div class="content" id="tab-analytics">
     <div class="stat-grid">
       <div class="stat lime"><div class="stat-val" style="color:var(--lime)" id="an-sessions">—</div><div class="stat-label">Total Sessions</div></div>
@@ -176,129 +400,193 @@ body{background:var(--bg);color:var(--t1);font-family:var(--sans);min-height:100
       <div class="stat amber"><div class="stat-val" style="color:var(--amber)" id="an-avg-dur">—</div><div class="stat-label">Avg Session (min)</div></div>
       <div class="stat rose"><div class="stat-val" style="color:var(--rose)" id="an-sets">—</div><div class="stat-label">Total Sets</div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card">
-        <div class="section-title">Weekly Volume Trend (kg)</div>
-        <div class="chart-wrap" style="height:220px"><canvas id="volumeChart"></canvas></div>
-      </div>
+      <div class="card"><div class="section-title">Weekly Volume Trend (kg)</div><div class="chart-wrap" style="height:220px"><canvas id="volumeChart"></canvas></div></div>
       <div class="card">
         <div class="section-title">Muscle Group Distribution</div>
         <div style="display:flex;align-items:center;gap:16px">
           <div class="chart-wrap" style="height:180px;width:180px;flex-shrink:0"><canvas id="muscleChart"></canvas></div>
-          <div class="muscle-legend" id="muscle-legend">
-            <div style="font-family:var(--mono);font-size:10px;color:var(--t3)">Loading...</div>
-          </div>
+          <div style="flex:1" id="muscle-legend"></div>
         </div>
       </div>
     </div>
-
     <div class="grid-3">
-      <div class="card">
-        <div class="section-title">Bench Press — Max Weight (kg)</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="benchChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Squat — Max Weight (kg)</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="squatChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Deadlift — Max Weight (kg)</div>
-        <div class="chart-wrap" style="height:160px"><canvas id="deadliftChart"></canvas></div>
-      </div>
+      <div class="card"><div class="section-title">Bench Press — Max (kg)</div><div class="chart-wrap" style="height:160px"><canvas id="benchChart"></canvas></div></div>
+      <div class="card"><div class="section-title">Squat — Max (kg)</div><div class="chart-wrap" style="height:160px"><canvas id="squatChart"></canvas></div></div>
+      <div class="card"><div class="section-title">Deadlift — Max (kg)</div><div class="chart-wrap" style="height:160px"><canvas id="deadliftChart"></canvas></div></div>
     </div>
-
     <div class="grid-2">
-      <div class="card">
-        <div class="section-title">Avg Session Duration by Day (min)</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="durationChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Monthly Consistency (%)</div>
-        <div class="chart-wrap" style="height:200px"><canvas id="consistencyChart"></canvas></div>
-      </div>
+      <div class="card"><div class="section-title">Avg Duration by Day (min)</div><div class="chart-wrap" style="height:200px"><canvas id="durationChart"></canvas></div></div>
+      <div class="card"><div class="section-title">Monthly Consistency (%)</div><div class="chart-wrap" style="height:200px"><canvas id="consistencyChart"></canvas></div></div>
     </div>
   </div>
 
-  <!-- ─── TAB: PRs & LIFTS ──────────────────────────────────────────────── -->
+  <!-- PRs -->
   <div class="content" id="tab-prs">
     <div class="grid-7-5">
+      <div class="card"><div class="section-title">Personal Records</div><div id="pr-list"></div></div>
+      <div class="card"><div class="section-title">Volume by Muscle</div><div id="muscle-volume-list"></div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="content" id="tab-history">
+    <div class="section-title">Recent Sessions</div>
+    <div id="session-list"></div>
+    <div style="margin-top:24px">
+      <div class="section-title">Volume by Type (per week)</div>
+      <div class="card"><div class="chart-wrap" style="height:220px"><canvas id="historyChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="content" id="tab-leaderboard">
+    <div class="grid-2">
       <div class="card">
-        <div class="section-title">Personal Records — Best Weight per Exercise</div>
-        <div id="pr-list">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--t3);padding:20px 0">Loading PRs from database...</div>
-        </div>
+        <div class="section-title">This Month's Leaderboard</div>
+        <div id="lb-list"></div>
       </div>
       <div class="card">
-        <div class="section-title">Top Muscles Trained</div>
-        <div id="muscle-volume-list">
-          <div style="font-family:var(--mono);font-size:11px;color:var(--t3);padding:20px 0">Loading...</div>
+        <div class="section-title">Add a Friend</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--t2);margin-bottom:16px;line-height:1.7">Enter a friend's email to add them to your leaderboard. They'll need to have an ApexFit account.</div>
+        <div class="friend-input-row">
+          <input type="email" id="friend-email" placeholder="friend@example.com">
+          <button class="friend-add-btn" onclick="addFriend()">ADD</button>
         </div>
+        <div id="friend-result" style="font-family:var(--mono);font-size:11px;color:var(--t2)"></div>
       </div>
     </div>
   </div>
 
-  <!-- ─── TAB: HISTORY ──────────────────────────────────────────────────── -->
-  <div class="content" id="tab-history">
-    <div class="section-title">Recent Sessions</div>
-    <div id="session-list">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--t3);padding:20px 0">Loading sessions from database...</div>
+  <!-- JOURNAL -->
+  <div class="content" id="tab-journal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="section-title" style="margin:0">Workout Journal</div>
+      <button class="edit-goal-btn" onclick="openJournalModal()">+ New Entry</button>
     </div>
-    <div style="margin-top:24px">
-      <div class="section-title">Volume by Session Type (per week)</div>
-      <div class="card" style="margin-top:0">
-        <div class="chart-wrap" style="height:220px"><canvas id="historyChart"></canvas></div>
+    <div id="journal-list"></div>
+  </div>
+
+  <!-- PROGRESS PHOTOS -->
+  <div class="content" id="tab-photos">
+    <div class="photo-upload" onclick="document.getElementById('photo-file-input').click()">
+      <input type="file" id="photo-file-input" accept="image/*" onchange="handlePhotoUpload(event)">
+      <div style="font-size:32px;margin-bottom:10px">📸</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:1px">TAP TO UPLOAD PROGRESS PHOTO</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:6px">Photos are stored privately for your account only</div>
+    </div>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+</div>
+
+<!-- ── JOURNAL MODAL ───────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="journal-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('journal-modal')">×</button>
+    <div class="modal-title">New Journal Entry</div>
+    <div style="margin-bottom:12px">
+      <div class="section-title">How was the workout?</div>
+      <div class="mood-picker" id="mood-picker">
+        <div class="mood-opt" data-mood="💪" onclick="selectMood(this)">💪</div>
+        <div class="mood-opt" data-mood="🔥" onclick="selectMood(this)">🔥</div>
+        <div class="mood-opt" data-mood="😤" onclick="selectMood(this)">😤</div>
+        <div class="mood-opt" data-mood="😴" onclick="selectMood(this)">😴</div>
+        <div class="mood-opt" data-mood="💀" onclick="selectMood(this)">💀</div>
       </div>
     </div>
+    <div style="margin-bottom:12px">
+      <div class="section-title">Energy Level</div>
+      <div class="energy-picker" id="energy-picker">
+        <button class="e-btn" onclick="selectEnergy(this,1)">1</button>
+        <button class="e-btn" onclick="selectEnergy(this,2)">2</button>
+        <button class="e-btn" onclick="selectEnergy(this,3)">3</button>
+        <button class="e-btn" onclick="selectEnergy(this,4)">4</button>
+        <button class="e-btn" onclick="selectEnergy(this,5)">5</button>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="section-title">Notes</div>
+      <textarea class="field-input" id="journal-note-input" placeholder="How did it feel? Any PRs? What to focus on next time..."></textarea>
+    </div>
+    <button class="auth-btn" onclick="saveJournalEntry()">SAVE ENTRY</button>
+  </div>
+</div>
+
+<!-- ── PHOTO MODAL ─────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('photo-modal')">×</button>
+    <div class="modal-title">Add Progress Photo</div>
+    <div id="photo-preview" style="margin-bottom:16px;border-radius:8px;overflow:hidden;max-height:300px;display:none"><img id="preview-img" style="width:100%;object-fit:contain"></div>
+    <div class="field">
+      <label>Body Weight (optional)</label>
+      <input type="number" id="photo-weight" placeholder="75.5 kg" style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;color:var(--t1);font-family:var(--sans);font-size:14px;outline:none">
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="section-title">Note</div>
+      <textarea class="field-input" id="photo-note-input" placeholder="Week 4 check-in, feeling stronger..."></textarea>
+    </div>
+    <button class="auth-btn" onclick="savePhoto()">SAVE PHOTO</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const API = "https://fastapi-production-cee9.up.railway.app";
+const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"; // Replace with yours
 
-// Palette
 const COLORS = ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#a78bfa','#34d399','#fb923c'];
-
-// Chart.js defaults for dark theme
 const GRID_COLOR = 'rgba(100,100,160,0.1)';
 const TICK_OPTS  = { color: '#8080a0', font: { family: 'DM Mono', size: 10 } };
 const BASE_OPTS  = {
-  responsive: true,
-  maintainAspectRatio: false,
+  responsive: true, maintainAspectRatio: false,
   plugins: { legend: { display: false } },
-  scales: {
-    x: { grid: { color: GRID_COLOR }, ticks: TICK_OPTS },
-    y: { grid: { color: GRID_COLOR }, ticks: TICK_OPTS }
-  }
+  scales: { x: { grid: { color: GRID_COLOR }, ticks: TICK_OPTS }, y: { grid: { color: GRID_COLOR }, ticks: TICK_OPTS } }
 };
 
-// ── HELPERS ─────────────────────────────────────────────────────────────────
-function showToast(m) {
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let token = localStorage.getItem('apexfit_token');
+let currentUser = JSON.parse(localStorage.getItem('apexfit_user') || 'null');
+let wizStep = 0;
+let selectedMuscles = [];
+let wizMood = null, wizEnergy = null;
+let pendingPhotoData = null;
+let tabsLoaded = {};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function showToast(m, isError = false) {
   const t = document.getElementById('toast');
-  t.textContent = m; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2500);
+  t.textContent = m;
+  t.style.background = isError ? 'var(--rose)' : 'var(--lime)';
+  t.style.color = isError ? '#fff' : '#000';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2800);
 }
 
 function fmt(n) {
   if (n === null || n === undefined) return '—';
-  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+  if (n >= 1000) return (n/1000).toFixed(1)+'k';
   return String(Math.round(n));
 }
 
 function formatDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 
-async function apiFetch(path) {
+async function apiFetch(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
   try {
-    const res = await fetch(API + path);
-    if (!res.ok) throw new Error(res.status);
+    const res = await fetch(API + path, { ...opts, headers });
+    if (res.status === 401) { logout(); return null; }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || res.status);
+    }
     return await res.json();
   } catch (e) {
     console.error('API error:', path, e);
@@ -308,371 +596,566 @@ async function apiFetch(path) {
 
 function makeChart(id, config) {
   const el = document.getElementById(id);
-  if (!el) return null;
-  // Destroy old instance if tab was re-opened
-  const existing = Chart.getChart(el);
-  if (existing) existing.destroy();
+  if (!el) return;
+  const ex = Chart.getChart(el);
+  if (ex) ex.destroy();
   return new Chart(el, config);
 }
 
-function liftLine(data, color) {
-  return {
-    labels: data.map(d => d.date),
-    datasets: [{
-      data: data.map(d => d.weight),
-      borderColor: color,
-      backgroundColor: color.replace(')', ', 0.06)').replace('rgb', 'rgba'),
-      fill: true, tension: 0.3,
-      pointRadius: 3, pointBackgroundColor: color
-    }]
-  };
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+// ── AUTH MODE ─────────────────────────────────────────────────────────────────
+let _authMode = 'login';
+function authMode(mode) {
+  _authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('on'));
+  event.target.classList.add('on');
+  document.getElementById('name-field').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT';
+  document.getElementById('auth-error').style.display = 'none';
 }
 
-const LIFT_OPTS = {
-  ...BASE_OPTS,
-  scales: {
-    x: { grid: { display: false }, ticks: TICK_OPTS },
-    y: { grid: { color: GRID_COLOR }, ticks: TICK_OPTS }
-  }
-};
+async function handleAuth() {
+  const btn = document.getElementById('auth-submit-btn');
+  const err = document.getElementById('auth-error');
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'LOADING...';
 
-// ── TAB SWITCHING ────────────────────────────────────────────────────────────
-let tabsLoaded = {};
+  const endpoint = _authMode === 'login' ? '/auth/login' : '/auth/register';
+  const body = _authMode === 'login' ? { email, password } : { email, password, name };
+
+  const res = await fetch(API + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  btn.disabled = false;
+  btn.textContent = _authMode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT';
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    err.textContent = data.detail || 'Something went wrong';
+    err.style.display = 'block';
+    return;
+  }
+
+  const data = await res.json();
+  onAuthSuccess(data);
+}
+
+function handleGoogleAuth() {
+  // Initialize Google Sign-In prompt
+  if (typeof google !== 'undefined') {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: async (response) => {
+        // Decode JWT payload
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        const res = await fetch(API + '/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ googleId: payload.sub, email: payload.email, name: payload.name })
+        });
+        if (!res.ok) { showToast('Google sign-in failed', true); return; }
+        const data = await res.json();
+        onAuthSuccess(data);
+      }
+    });
+    google.accounts.id.prompt();
+  } else {
+    showToast('Google sign-in unavailable — use email/password', true);
+  }
+}
+
+function onAuthSuccess(data) {
+  token = data.token;
+  currentUser = data.user;
+  localStorage.setItem('apexfit_token', token);
+  localStorage.setItem('apexfit_user', JSON.stringify(currentUser));
+  document.getElementById('auth-screen').style.display = 'none';
+
+  if (data.isNewUser) {
+    showGoalWizard();
+  } else {
+    launchApp();
+  }
+}
+
+function logout() {
+  token = null; currentUser = null;
+  localStorage.removeItem('apexfit_token');
+  localStorage.removeItem('apexfit_user');
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('goal-wizard').style.display = 'none';
+  tabsLoaded = {};
+}
+
+// ── GOAL WIZARD ───────────────────────────────────────────────────────────────
+function showGoalWizard() {
+  document.getElementById('goal-wizard').style.display = 'flex';
+  addExerciseRow(); addExerciseRow(); addExerciseRow();
+}
+
+function openGoalWizard() {
+  document.getElementById('avatar-menu').classList.remove('open');
+  wizStep = 0;
+  updateWizStep();
+  document.getElementById('goal-wizard').style.display = 'flex';
+}
+
+function toggleMuscle(el, name) {
+  el.classList.toggle('sel');
+  if (el.classList.contains('sel')) {
+    if (!selectedMuscles.includes(name)) selectedMuscles.push(name);
+  } else {
+    selectedMuscles = selectedMuscles.filter(m => m !== name);
+  }
+}
+
+function addExerciseRow(name='', sets=3, reps=10, weight=0) {
+  const list = document.getElementById('ex-builder-list');
+  const id = Date.now() + Math.random();
+  const row = document.createElement('div');
+  row.className = 'ex-row';
+  row.id = 'ex-' + id;
+  row.innerHTML = `
+    <input type="text" placeholder="Exercise name" value="${name}" class="ex-name-inp">
+    <input type="number" placeholder="3" value="${sets}" min="1" max="10" class="ex-sets-inp">
+    <input type="number" placeholder="10" value="${reps}" min="1" max="50" class="ex-reps-inp">
+    <input type="number" placeholder="0" value="${weight}" min="0" step="2.5" class="ex-weight-inp">
+    <button class="del-btn" onclick="document.getElementById('ex-${id}').remove()">×</button>
+  `;
+  list.appendChild(row);
+}
+
+function wizNext() {
+  if (wizStep === 0 && selectedMuscles.length === 0) {
+    showToast('Pick at least one muscle group', true); return;
+  }
+  if (wizStep === 1) {
+    // Build summary
+    const rows = document.querySelectorAll('.ex-row');
+    const exercises = [];
+    rows.forEach(r => {
+      const name = r.querySelector('.ex-name-inp').value.trim();
+      if (name) exercises.push({
+        name,
+        sets: parseInt(r.querySelector('.ex-sets-inp').value) || 3,
+        reps: parseInt(r.querySelector('.ex-reps-inp').value) || 10,
+        weight: parseFloat(r.querySelector('.ex-weight-inp').value) || 0
+      });
+    });
+    const summaryEl = document.getElementById('wiz-summary');
+    summaryEl.innerHTML = `<div style="color:var(--lime);margin-bottom:8px">Target muscles: ${selectedMuscles.join(', ')}</div>` +
+      exercises.map(e => `${e.name} — ${e.sets}×${e.reps} @ ${e.weight}kg`).join('<br>');
+  }
+  wizStep++;
+  updateWizStep();
+}
+
+function wizBack() { if (wizStep > 0) { wizStep--; updateWizStep(); } }
+
+function updateWizStep() {
+  document.querySelectorAll('.wizard-step').forEach((s,i) => s.classList.toggle('active', i===wizStep));
+  document.querySelectorAll('.prog-dot').forEach((d,i) => d.classList.toggle('on', i<=wizStep));
+}
+
+async function saveGoalsAndLaunch() {
+  const rows = document.querySelectorAll('.ex-row');
+  const exercises = [];
+  rows.forEach(r => {
+    const name = r.querySelector('.ex-name-inp').value.trim();
+    if (name) exercises.push({
+      name,
+      sets: parseInt(r.querySelector('.ex-sets-inp').value) || 3,
+      reps: parseInt(r.querySelector('.ex-reps-inp').value) || 10,
+      weight: parseFloat(r.querySelector('.ex-weight-inp').value) || 0
+    });
+  });
+  const goals = { muscles: selectedMuscles, exercises, createdAt: new Date().toISOString() };
+  await apiFetch('/goals', { method: 'POST', body: JSON.stringify(goals) });
+  document.getElementById('goal-wizard').style.display = 'none';
+  launchApp();
+}
+
+// ── LAUNCH APP ────────────────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('main-app').style.display = 'flex';
+  if (currentUser) {
+    document.getElementById('user-avatar').textContent = currentUser.initials || 'JD';
+  }
+  tabsLoaded['plan'] = true;
+  loadToday();
+}
+
+function toggleAvatarMenu() {
+  document.getElementById('avatar-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.avatar') && !e.target.closest('.avatar-menu')) {
+    document.getElementById('avatar-menu').classList.remove('open');
+  }
+});
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 function switchTab(tab, btn) {
   document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
   document.getElementById('tab-' + tab).classList.add('active');
-  btn.classList.add('on');
-
+  if (btn) btn.classList.add('on');
   if (!tabsLoaded[tab]) {
     tabsLoaded[tab] = true;
-    if (tab === 'analytics') loadAnalytics();
-    if (tab === 'history')   loadHistory();
-    if (tab === 'prs')       loadPRs();
+    if (tab === 'analytics')   loadAnalytics();
+    if (tab === 'history')     loadHistory();
+    if (tab === 'prs')         loadPRs();
+    if (tab === 'leaderboard') loadLeaderboard();
+    if (tab === 'journal')     loadJournal();
+    if (tab === 'photos')      loadPhotos();
   }
 }
 
-// ── TODAY TAB ────────────────────────────────────────────────────────────────
+// ── TODAY ─────────────────────────────────────────────────────────────────────
 async function loadToday() {
-  const [summary, latest, sessions] = await Promise.all([
+  const [summary, latest, sessions, goals] = await Promise.all([
     apiFetch('/stats/summary'),
     apiFetch('/today/latest-session'),
-    apiFetch('/history/sessions?limit=5')
+    apiFetch('/history/sessions?limit=5'),
+    apiFetch('/goals')
   ]);
 
-  // Stats
   if (summary) {
-    document.getElementById('today-sessions').textContent = fmt(summary.totalSessions);
-    document.getElementById('an-sessions').textContent    = fmt(summary.totalSessions);
-    document.getElementById('today-volume').textContent   = fmt(summary.totalVolume);
-    document.getElementById('an-volume').textContent      = fmt(summary.totalVolume);
-    document.getElementById('today-avg-dur').textContent  = fmt(summary.avgDuration);
-    document.getElementById('an-avg-dur').textContent     = fmt(summary.avgDuration);
-    document.getElementById('today-sets').textContent     = fmt(summary.totalSets);
-    document.getElementById('an-sets').textContent        = fmt(summary.totalSets);
-
-    // Streak: count consecutive days sessions were logged up to today
-    document.getElementById('hdr-streak').textContent = summary.totalSessions + ' SESSIONS';
+    ['today-sessions','an-sessions'].forEach(id => document.getElementById(id).textContent = fmt(summary.totalSessions));
+    ['today-volume','an-volume'].forEach(id => document.getElementById(id).textContent = fmt(summary.totalVolume));
+    ['today-avg-dur','an-avg-dur'].forEach(id => document.getElementById(id).textContent = fmt(summary.avgDuration));
+    ['today-sets','an-sets'].forEach(id => document.getElementById(id).textContent = fmt(summary.totalSets));
+    document.getElementById('hdr-sessions').textContent = summary.totalSessions + ' SESSIONS';
   }
 
-  // Latest session exercises
+  // Goal banner
+  if (goals) {
+    document.getElementById('goal-banner-area').innerHTML = `
+      <div class="goal-banner">
+        <div class="goal-banner-text">
+          <strong>🎯 Your Current Goal</strong>
+          Targeting: ${goals.muscles?.join(', ') || '—'} &nbsp;·&nbsp; ${goals.exercises?.length || 0} exercises planned
+        </div>
+        <button class="edit-goal-btn" onclick="openGoalWizard()">EDIT GOAL</button>
+      </div>`;
+  }
+
+  // Latest session
   if (latest && latest.exercises) {
-    document.getElementById('latest-session-title').textContent =
-      `Last Session — ${latest.sessionName || latest.sessionType || 'Workout'}`;
-
-    const container = document.getElementById('latest-exercises');
-    container.innerHTML = latest.exercises.map(ex => {
-      const firstSet = ex.sets?.[0];
-      const setStr   = firstSet ? `${ex.totalSets} × ${firstSet.reps} @ ${firstSet.weight} kg` : `${ex.totalSets} sets`;
-      return `
-        <div class="ex-card">
-          <div class="ex-name">${ex.name}</div>
-          <div class="ex-sets">${setStr}</div>
-          <span class="ex-muscle">${ex.muscle}</span>
-        </div>`;
+    document.getElementById('latest-session-title').textContent = `Last Session — ${latest.sessionName || latest.sessionType || 'Workout'}`;
+    document.getElementById('latest-exercises').innerHTML = latest.exercises.map(ex => {
+      const s = ex.sets?.[0];
+      return `<div class="ex-card"><div class="ex-name">${ex.name}</div><div class="ex-sets">${ex.totalSets}×${s?.reps||'—'} @ ${s?.weight||0}kg</div><span class="ex-muscle">${ex.muscle}</span></div>`;
     }).join('');
-
-    // Header program info
-    document.getElementById('hdr-program').textContent =
-      `${latest.sessionName || ''} · ${latest.program || 'PPL'}`;
   } else {
-    document.getElementById('latest-exercises').innerHTML =
-      '<div class="no-data" style="height:120px;grid-column:1/-1">No sessions recorded yet</div>';
+    document.getElementById('latest-exercises').innerHTML = '<div class="no-data" style="height:100px;grid-column:1/-1">No sessions yet — start tracking!</div>';
   }
 
-  // Mini volume chart (last 5 sessions)
+  // Mini charts
   if (sessions && sessions.length > 0) {
     const recent = [...sessions].reverse();
     makeChart('miniVolumeChart', {
       type: 'bar',
-      data: {
-        labels: recent.map(s => formatDate(s.session_date)),
-        datasets: [{
-          data: recent.map(s => s.total_volume),
-          backgroundColor: COLORS[0] + '33',
-          borderColor: COLORS[0],
-          borderWidth: 1, borderRadius: 4
-        }]
-      },
-      options: { ...BASE_OPTS }
+      data: { labels: recent.map(s => formatDate(s.session_date)),
+              datasets: [{ data: recent.map(s => s.total_volume), backgroundColor: '#c8ff0033', borderColor: '#c8ff00', borderWidth: 1, borderRadius: 4 }] },
+      options: BASE_OPTS
     });
-
-    // Session type pie
-    const typeCounts = {};
-    sessions.forEach(s => {
-      const t = (s.session_type || 'other').toLowerCase();
-      typeCounts[t] = (typeCounts[t] || 0) + 1;
-    });
-    const typeColors = { push: '#38bdf8', pull: '#fbbf24', legs: '#f43f5e', other: '#a78bfa' };
+    const tc = {};
+    sessions.forEach(s => { const t=(s.session_type||'other').toLowerCase(); tc[t]=(tc[t]||0)+1; });
+    const tColors = { push:'#38bdf8', pull:'#fbbf24', legs:'#f43f5e', other:'#a78bfa' };
     makeChart('typeChart', {
       type: 'doughnut',
-      data: {
-        labels: Object.keys(typeCounts),
-        datasets: [{
-          data: Object.values(typeCounts),
-          backgroundColor: Object.keys(typeCounts).map(k => typeColors[k] || '#a78bfa'),
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '65%',
-        plugins: { legend: { display: true, position: 'bottom', labels: { color: '#8080a0', font: { family: 'DM Mono', size: 9 }, boxWidth: 8 } } }
-      }
+      data: { labels: Object.keys(tc), datasets: [{ data: Object.values(tc), backgroundColor: Object.keys(tc).map(k=>tColors[k]||'#a78bfa'), borderWidth: 0 }] },
+      options: { responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{display:true,position:'bottom',labels:{color:'#8080a0',font:{family:'DM Mono',size:9},boxWidth:8}}}}
     });
+  }
+
+  // AI suggestion
+  loadAISuggestion();
+}
+
+// ── AI SUGGESTION ─────────────────────────────────────────────────────────────
+async function loadAISuggestion() {
+  const ctx = await apiFetch('/ai/context');
+  const area = document.getElementById('ai-suggestion-area');
+
+  const goalsText = ctx?.goals ? `Target muscles: ${ctx.goals.muscles?.join(', ')}. Planned exercises: ${ctx.goals.exercises?.map(e=>`${e.name} ${e.sets}x${e.reps} @ ${e.weight}kg`).join(', ')}.` : 'No specific goals set yet.';
+  const recentText = ctx?.recentSessions?.length ? `Recent sessions: ${ctx.recentSessions.map(s=>`${s.name} (${s.type}, ${s.volume}kg)`).join('; ')}.` : 'No recent sessions.';
+  const prsText = ctx?.personalRecords?.length ? `PRs: ${ctx.personalRecords.slice(0,5).map(p=>`${p.exercise} ${p.max_weight}kg`).join(', ')}.` : '';
+
+  const prompt = `You are an expert personal trainer AI coach for ApexFit. Based on this athlete's data, give a short, punchy, motivating workout suggestion for today (2-3 sentences max). Be specific about exercises, sets, reps. Use their goals and recent history.
+
+Goals: ${goalsText}
+${recentText}
+${prsText}
+
+Format: Bold the workout name, then give the specific recommendation. Be direct and energetic.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.map(c => c.text || '').join('') || '';
+
+    // Convert **bold** to <strong>
+    const html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+
+    area.innerHTML = `
+      <div class="ai-card">
+        <div class="ai-header"><div class="ai-icon">🤖</div><div class="ai-title">AI Workout Coach</div></div>
+        <div class="ai-body">${html}</div>
+        <button class="ai-refresh" onclick="tabsLoaded.plan=true;loadAISuggestion()">↻ NEW SUGGESTION</button>
+      </div>`;
+  } catch(e) {
+    area.innerHTML = `<div class="ai-card"><div class="ai-header"><div class="ai-icon">🤖</div><div class="ai-title">AI Workout Coach</div></div><div class="ai-body" style="color:var(--t3)">AI suggestions unavailable right now.</div></div>`;
   }
 }
 
-// ── ANALYTICS TAB ────────────────────────────────────────────────────────────
+// ── ANALYTICS ─────────────────────────────────────────────────────────────────
 async function loadAnalytics() {
   const [weekVol, muscleSplit, bench, squat, deadlift, duration, consistency] = await Promise.all([
-    apiFetch('/stats/weekly-volume'),
-    apiFetch('/stats/muscle-split'),
+    apiFetch('/stats/weekly-volume'), apiFetch('/stats/muscle-split'),
     apiFetch('/stats/lift-history?exercise=Bench Press'),
     apiFetch('/stats/lift-history?exercise=Squat'),
     apiFetch('/stats/lift-history?exercise=Deadlift'),
-    apiFetch('/stats/duration-by-day'),
-    apiFetch('/stats/consistency')
+    apiFetch('/stats/duration-by-day'), apiFetch('/stats/consistency')
   ]);
 
-  // Weekly volume line chart
-  if (weekVol && weekVol.length > 0) {
-    makeChart('volumeChart', {
-      type: 'line',
-      data: {
-        labels: weekVol.map(w => w.week),
-        datasets: [{
-          label: 'Volume (kg)',
-          data: weekVol.map(w => w.volume),
-          borderColor: '#c8ff00',
-          backgroundColor: 'rgba(200,255,0,0.05)',
-          fill: true, tension: 0.4,
-          pointBackgroundColor: '#c8ff00', pointRadius: 4
-        }]
-      },
-      options: BASE_OPTS
-    });
-  } else {
-    document.getElementById('volumeChart').parentElement.innerHTML =
-      '<div class="no-data" style="height:220px">No weekly data yet</div>';
+  if (weekVol?.length) {
+    makeChart('volumeChart', { type:'line', data:{ labels:weekVol.map(w=>w.week), datasets:[{label:'Volume',data:weekVol.map(w=>w.volume),borderColor:'#c8ff00',backgroundColor:'rgba(200,255,0,0.05)',fill:true,tension:0.4,pointBackgroundColor:'#c8ff00',pointRadius:4}]}, options:BASE_OPTS });
   }
 
-  // Muscle doughnut + legend
-  if (muscleSplit && muscleSplit.length > 0) {
-    const muscles = muscleSplit.slice(0, 7);
-    makeChart('muscleChart', {
-      type: 'doughnut',
-      data: {
-        labels: muscles.map(m => m.muscle),
-        datasets: [{
-          data: muscles.map(m => m.volume),
-          backgroundColor: COLORS.slice(0, muscles.length),
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '70%',
-        plugins: { legend: { display: false } }
-      }
-    });
-
-    // Dynamic legend with progress bars
-    document.getElementById('muscle-legend').innerHTML = muscles.map((m, i) => `
-      <div class="muscle-legend-row">
-        <div class="prog-label">
-          <span><span class="dot" style="background:${COLORS[i]}"></span>${m.muscle}</span>
-          <span>${m.percent}%</span>
-        </div>
-        <div class="prog-track">
-          <div class="prog-fill" style="width:${m.percent}%;background:${COLORS[i]}"></div>
-        </div>
+  if (muscleSplit?.length) {
+    const ms = muscleSplit.slice(0,7);
+    makeChart('muscleChart', { type:'doughnut', data:{labels:ms.map(m=>m.muscle),datasets:[{data:ms.map(m=>m.volume),backgroundColor:COLORS.slice(0,ms.length),borderWidth:0}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}} });
+    document.getElementById('muscle-legend').innerHTML = ms.map((m,i) => `
+      <div class="prog-bar-wrap">
+        <div class="prog-label"><span><span class="dot-color" style="background:${COLORS[i]}"></span>${m.muscle}</span><span>${m.percent}%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${m.percent}%;background:${COLORS[i]}"></div></div>
       </div>`).join('');
   }
 
-  // Lift progression charts
-  const liftDefs = [
-    { id: 'benchChart',    data: bench,    color: '#c8ff00' },
-    { id: 'squatChart',    data: squat,    color: '#38bdf8' },
-    { id: 'deadliftChart', data: deadlift, color: '#fbbf24' }
-  ];
-  liftDefs.forEach(({ id, data, color }) => {
-    if (data && data.length > 0) {
-      makeChart(id, { type: 'line', data: liftLine(data, color), options: { ...LIFT_OPTS, responsive: true, maintainAspectRatio: false } });
+  const lo = { ...BASE_OPTS, scales:{ x:{grid:{display:false},ticks:TICK_OPTS}, y:{grid:{color:GRID_COLOR},ticks:TICK_OPTS} } };
+  [[bench,'benchChart','#c8ff00'],[squat,'squatChart','#38bdf8'],[deadlift,'deadliftChart','#fbbf24']].forEach(([data,id,color]) => {
+    if (data?.length) {
+      makeChart(id, { type:'line', data:{labels:data.map(d=>d.date),datasets:[{data:data.map(d=>d.weight),borderColor:color,backgroundColor:color+'10',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:color}]}, options:{...lo,responsive:true,maintainAspectRatio:false} });
     } else {
-      document.getElementById(id).parentElement.innerHTML =
-        '<div class="no-data" style="height:160px">No data yet</div>';
+      document.getElementById(id).parentElement.innerHTML = '<div class="no-data" style="height:160px">No data yet</div>';
     }
   });
 
-  // Duration by day bar chart
-  if (duration && duration.length > 0) {
-    const dayColors = duration.map(d => d.minutes > 0 ? '#c8ff00' : '#404060');
-    makeChart('durationChart', {
-      type: 'bar',
-      data: {
-        labels: duration.map(d => d.day),
-        datasets: [{
-          data: duration.map(d => d.minutes),
-          backgroundColor: dayColors, borderRadius: 4
-        }]
-      },
-      options: BASE_OPTS
-    });
+  if (duration?.length) {
+    makeChart('durationChart', { type:'bar', data:{labels:duration.map(d=>d.day),datasets:[{data:duration.map(d=>d.minutes),backgroundColor:duration.map(d=>d.minutes>0?'#c8ff00':'#404060'),borderRadius:4}]}, options:BASE_OPTS });
   }
-
-  // Monthly consistency bar chart
-  if (consistency && consistency.length > 0) {
-    makeChart('consistencyChart', {
-      type: 'bar',
-      data: {
-        labels: consistency.map(c => c.month),
-        datasets: [{
-          data: consistency.map(c => c.percent),
-          backgroundColor: 'rgba(200,255,0,0.15)',
-          borderColor: '#c8ff00', borderWidth: 1, borderRadius: 4
-        }]
-      },
-      options: {
-        ...BASE_OPTS,
-        scales: { ...BASE_OPTS.scales, y: { ...BASE_OPTS.scales.y, max: 100 } }
-      }
-    });
+  if (consistency?.length) {
+    makeChart('consistencyChart', { type:'bar', data:{labels:consistency.map(c=>c.month),datasets:[{data:consistency.map(c=>c.percent),backgroundColor:'rgba(200,255,0,0.15)',borderColor:'#c8ff00',borderWidth:1,borderRadius:4}]}, options:{...BASE_OPTS,scales:{...BASE_OPTS.scales,y:{...BASE_OPTS.scales.y,max:100}}} });
   }
 }
 
-// ── PRs TAB ──────────────────────────────────────────────────────────────────
+// ── PRs ───────────────────────────────────────────────────────────────────────
 async function loadPRs() {
-  const [prs, muscleSplit] = await Promise.all([
-    apiFetch('/stats/personal-records'),
-    apiFetch('/stats/muscle-split')
-  ]);
-
-  // PR rows
-  if (prs && prs.length > 0) {
-    const prColors = ['#c8ff00','#38bdf8','#fbbf24','#f43f5e','#a78bfa','#34d399','#fb923c'];
-    document.getElementById('pr-list').innerHTML = prs.map((pr, i) => {
-      const c = prColors[i % prColors.length];
-      return `
-        <div class="lift-row">
-          <div>
-            <div class="lift-name">${pr.exercise}</div>
-            <div class="lift-muscle">${pr.muscle}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="lift-weight" style="color:${c}">${pr.maxWeight} kg</div>
-            <div class="lift-badge" style="background:${c}18;color:${c};border-color:${c}44">
-              ${pr.lastDate}
-            </div>
-          </div>
-        </div>`;
+  const [prs, muscleSplit] = await Promise.all([apiFetch('/stats/personal-records'), apiFetch('/stats/muscle-split')]);
+  if (prs?.length) {
+    document.getElementById('pr-list').innerHTML = prs.map((pr,i) => {
+      const c = COLORS[i%COLORS.length];
+      return `<div class="lift-row"><div><div class="lift-name">${pr.exercise}</div><div class="lift-muscle">${pr.muscle}</div></div><div style="text-align:right"><div class="lift-weight" style="color:${c}">${pr.maxWeight} kg</div><div class="lift-badge" style="background:${c}18;color:${c};border-color:${c}44">${pr.lastDate}</div></div></div>`;
     }).join('');
   } else {
-    document.getElementById('pr-list').innerHTML =
-      '<div class="no-data" style="height:120px">No PRs recorded yet</div>';
+    document.getElementById('pr-list').innerHTML = '<div class="no-data" style="height:100px">No PRs yet</div>';
   }
-
-  // Muscle volume list
-  if (muscleSplit && muscleSplit.length > 0) {
-    document.getElementById('muscle-volume-list').innerHTML = muscleSplit.slice(0, 8).map((m, i) => `
+  if (muscleSplit?.length) {
+    document.getElementById('muscle-volume-list').innerHTML = muscleSplit.slice(0,8).map((m,i) => `
       <div class="prog-bar-wrap">
-        <div class="prog-label">
-          <span>${m.muscle}</span>
-          <span>${fmt(m.volume)} kg</span>
-        </div>
-        <div class="prog-track">
-          <div class="prog-fill" style="width:${m.percent}%;background:${COLORS[i % COLORS.length]}"></div>
-        </div>
+        <div class="prog-label"><span>${m.muscle}</span><span>${fmt(m.volume)} kg</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${m.percent}%;background:${COLORS[i%COLORS.length]}"></div></div>
       </div>`).join('');
   }
 }
 
-// ── HISTORY TAB ──────────────────────────────────────────────────────────────
+// ── HISTORY ───────────────────────────────────────────────────────────────────
 async function loadHistory() {
-  const [sessions, volByType] = await Promise.all([
-    apiFetch('/history/sessions?limit=20'),
-    apiFetch('/history/volume-by-type')
-  ]);
-
-  // Session cards
-  if (sessions && sessions.length > 0) {
-    const tagClass = { push: 'push', pull: 'pull', legs: 'legs' };
+  const [sessions, volByType] = await Promise.all([apiFetch('/history/sessions?limit=20'), apiFetch('/history/volume-by-type')]);
+  const tagCls = {push:'push',pull:'pull',legs:'legs'};
+  const moodLabel = {5:'🔥',4:'💪',3:'😤',2:'😴',1:'💀'};
+  if (sessions?.length) {
     document.getElementById('session-list').innerHTML = sessions.map(s => {
-      const type = (s.session_type || 'other').toLowerCase();
-      const tCls = tagClass[type] || 'other';
-      return `
-        <div class="session-card">
-          <div class="session-top">
-            <div>
-              <div class="session-name">${s.session_name || 'Workout'}</div>
-              <div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">
-                ${formatDate(s.session_date)} · ${Math.round(s.duration_minutes || 0)} min
-              </div>
-            </div>
-            <div class="session-vol">${fmt(s.total_volume)} kg total</div>
-          </div>
-          <div class="session-tags">
-            <span class="tag ${tCls}">${type.toUpperCase()}</span>
-            <span style="font-size:10px;font-family:var(--mono);color:var(--t3);padding:3px 8px">
-              ${s.total_sets} sets · ${s.total_reps} reps
-            </span>
-          </div>
-        </div>`;
+      const t = (s.session_type||'other').toLowerCase();
+      const journalPart = s.journal_note ? `<div style="font-size:12px;color:var(--t3);margin-top:8px;font-family:var(--mono)">"${s.journal_note.slice(0,100)}${s.journal_note.length>100?'…':''}"</div>` : '';
+      const moodPart = s.mood ? `<span class="mood-tag">${s.mood}</span>` : '';
+      const energyPips = s.energy_level ? `<div class="energy-bar">${[1,2,3,4,5].map(n=>`<div class="energy-pip${n<=s.energy_level?' on':''}"></div>`).join('')}</div>` : '';
+      return `<div class="session-card">
+        <div class="session-top">
+          <div><div class="session-name">${s.session_name||'Workout'}</div><div style="font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:3px">${formatDate(s.session_date)} · ${Math.round(s.duration_minutes||0)} min</div></div>
+          <div class="session-vol">${fmt(s.total_volume)} kg</div>
+        </div>
+        <div class="session-tags"><span class="tag ${tagCls[t]||'other'}">${t.toUpperCase()}</span><span style="font-size:10px;font-family:var(--mono);color:var(--t3);padding:3px 8px">${s.total_sets||0} sets</span>${moodPart}${energyPips}</div>
+        ${journalPart}
+      </div>`;
     }).join('');
   } else {
-    document.getElementById('session-list').innerHTML =
-      '<div class="no-data" style="height:80px">No sessions yet</div>';
+    document.getElementById('session-list').innerHTML = '<div class="no-data" style="height:80px">No sessions yet</div>';
   }
-
-  // Volume by type stacked bar
-  if (volByType && volByType.length > 0) {
-    makeChart('historyChart', {
-      type: 'bar',
-      data: {
-        labels: volByType.map(w => w.week),
-        datasets: [
-          { label: 'Push', data: volByType.map(w => w.push), backgroundColor: '#38bdf8', borderRadius: 3 },
-          { label: 'Pull', data: volByType.map(w => w.pull), backgroundColor: '#fbbf24', borderRadius: 3 },
-          { label: 'Legs', data: volByType.map(w => w.legs), backgroundColor: '#f43f5e', borderRadius: 3 }
-        ]
-      },
-      options: {
-        ...BASE_OPTS,
-        plugins: {
-          legend: {
-            display: true,
-            labels: { color: '#8080a0', font: { family: 'DM Mono', size: 10 }, boxWidth: 10 }
-          }
-        }
-      }
-    });
-  } else {
-    document.getElementById('historyChart').parentElement.innerHTML =
-      '<div class="no-data" style="height:220px">Not enough data yet</div>';
+  if (volByType?.length) {
+    makeChart('historyChart', { type:'bar', data:{labels:volByType.map(w=>w.week),datasets:[{label:'Push',data:volByType.map(w=>w.push),backgroundColor:'#38bdf8',borderRadius:3},{label:'Pull',data:volByType.map(w=>w.pull),backgroundColor:'#fbbf24',borderRadius:3},{label:'Legs',data:volByType.map(w=>w.legs),backgroundColor:'#f43f5e',borderRadius:3}]},
+      options:{...BASE_OPTS,plugins:{legend:{display:true,labels:{color:'#8080a0',font:{family:'DM Mono',size:10},boxWidth:10}}}} });
   }
 }
 
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+async function loadLeaderboard() {
+  const data = await apiFetch('/leaderboard');
+  if (!data?.length) {
+    document.getElementById('lb-list').innerHTML = '<div class="no-data" style="height:80px">Add friends to see the leaderboard!</div>';
+    return;
+  }
+  const rankColors = ['gold','silver','bronze'];
+  document.getElementById('lb-list').innerHTML = data.map(u => `
+    <div class="lb-row">
+      <div class="lb-rank ${rankColors[u.rank-1]||''}">${u.rank}</div>
+      <div class="lb-avatar ${u.isMe?'me':''}">${u.avatar_initials||'??'}</div>
+      <div style="flex:1"><div class="lb-name ${u.isMe?'me':''}">${u.name||'Unknown'}${u.isMe?'<span class="lb-you">YOU</span>':''}</div><div class="lb-sessions">${u.sessions_this_month} sessions this month</div></div>
+      <div style="text-align:right"><div class="lb-vol">${fmt(u.monthly_volume)}</div><div class="lb-sessions">kg volume</div></div>
+    </div>`).join('');
+}
+
+async function addFriend() {
+  const email = document.getElementById('friend-email').value.trim();
+  if (!email) return;
+  const res = await apiFetch('/friends/add', { method:'POST', body:JSON.stringify({email}) });
+  const el = document.getElementById('friend-result');
+  if (res) {
+    el.style.color = 'var(--lime)';
+    el.textContent = `✓ Added ${res.friendName} — they'll appear on the leaderboard!`;
+    document.getElementById('friend-email').value = '';
+    tabsLoaded.leaderboard = false;
+    setTimeout(() => { tabsLoaded.leaderboard = true; loadLeaderboard(); }, 500);
+  } else {
+    el.style.color = 'var(--rose)';
+    el.textContent = 'No account found with that email';
+  }
+}
+
+// ── JOURNAL ───────────────────────────────────────────────────────────────────
+function openJournalModal() { wizMood = null; wizEnergy = null; openModal('journal-modal'); }
+
+function selectMood(el) {
+  document.querySelectorAll('.mood-opt').forEach(m => m.classList.remove('sel'));
+  el.classList.add('sel');
+  wizMood = el.dataset.mood;
+}
+function selectEnergy(el, val) {
+  document.querySelectorAll('.e-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  wizEnergy = val;
+}
+
+async function saveJournalEntry() {
+  const note = document.getElementById('journal-note-input').value.trim();
+  if (!note && !wizMood) { showToast('Add a note or mood', true); return; }
+  const res = await apiFetch('/journal', { method:'POST', body:JSON.stringify({note, mood:wizMood, energyLevel:wizEnergy}) });
+  if (res) {
+    showToast('Journal entry saved!');
+    closeModal('journal-modal');
+    document.getElementById('journal-note-input').value = '';
+    tabsLoaded.journal = false;
+    loadJournal();
+    tabsLoaded.journal = true;
+  }
+}
+
+async function loadJournal() {
+  const data = await apiFetch('/journal');
+  const moodLabel = {'💪':'Strong','🔥':'On fire','😤':'Grind','😴':'Tired','💀':'Destroyed'};
+  if (!data?.length) {
+    document.getElementById('journal-list').innerHTML = '<div class="no-data" style="height:80px">No entries yet — add your first journal entry!</div>';
+    return;
+  }
+  document.getElementById('journal-list').innerHTML = data.map(e => {
+    const energyPips = e.energy_level ? `<div class="energy-bar">${[1,2,3,4,5].map(n=>`<div class="energy-pip${n<=e.energy_level?' on':''}"></div>`).join('')}</div>` : '';
+    return `<div class="journal-entry">
+      <div class="journal-header">
+        <div><div class="journal-session">${e.session_name||'General Entry'}</div><div class="journal-date">${formatDate(e.session_date||e.created_at)}</div></div>
+        <div style="font-size:22px">${e.mood||''}</div>
+      </div>
+      ${e.note ? `<div class="journal-note">${e.note}</div>` : ''}
+      <div class="journal-meta">${energyPips}${e.energy_level?`<span style="font-family:var(--mono);font-size:10px;color:var(--t3)">Energy ${e.energy_level}/5</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── PROGRESS PHOTOS ───────────────────────────────────────────────────────────
+let _pendingPhotoBase64 = null;
+
+function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    _pendingPhotoBase64 = ev.target.result;
+    document.getElementById('preview-img').src = _pendingPhotoBase64;
+    document.getElementById('photo-preview').style.display = 'block';
+    document.getElementById('photo-note-input').value = '';
+    document.getElementById('photo-weight').value = '';
+    openModal('photo-modal');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function savePhoto() {
+  if (!_pendingPhotoBase64) return;
+  const note = document.getElementById('photo-note-input').value.trim();
+  const bodyWeight = document.getElementById('photo-weight').value;
+  // In production, upload to Cloudinary/S3 and store URL. Here we store base64 (small images only).
+  const res = await apiFetch('/photos', { method:'POST', body:JSON.stringify({photoUrl:_pendingPhotoBase64, note, bodyWeight:bodyWeight||null}) });
+  if (res) {
+    showToast('Photo saved!');
+    closeModal('photo-modal');
+    _pendingPhotoBase64 = null;
+    tabsLoaded.photos = false;
+    loadPhotos();
+    tabsLoaded.photos = true;
+  }
+}
+
+async function loadPhotos() {
+  const data = await apiFetch('/photos');
+  if (!data?.length) {
+    document.getElementById('photo-grid').innerHTML = '<div class="no-data" style="height:100px;grid-column:1/-1">No progress photos yet — upload your first one!</div>';
+    return;
+  }
+  document.getElementById('photo-grid').innerHTML = data.map(p => `
+    <div class="photo-card">
+      <img src="${p.photo_url}" alt="Progress photo" loading="lazy">
+      <div class="photo-overlay">
+        ${p.body_weight ? `<div class="photo-weight">${p.body_weight} kg</div>` : ''}
+        <div>${formatDate(p.created_at)}</div>
+        ${p.note ? `<div style="margin-top:4px">${p.note.slice(0,50)}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
 // ── BOOT ─────────────────────────────────────────────────────────────────────
-tabsLoaded['plan'] = true;
-loadToday();
+if (token && currentUser) {
+  document.getElementById('auth-screen').style.display = 'none';
+  launchApp();
+}
 </script>
 </body>
 </html>
