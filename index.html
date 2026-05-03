@@ -683,32 +683,23 @@ const CD = {
 
 let chartsInit = false;
 async function initAnalyticsCharts() {
-  try {
-    // 1. Fetch real data from your Railway API
-    const response = await fetch("https://fastapi-production-cee9.up.railway.app/get-workouts");
-    const workouts = await response.json();
+  if (chartsInit) return;
+  chartsInit = true;
 
-    // 2. Map the data for your Volume Chart
-    // This pulls 'sessionDate' and 'totalVolume' from the JSON we saw in TablePlus
-    const labels = workouts.map(w => w.sessionDate || "Unknown");
-    const volumeData = workouts.map(w => w.totalVolume || 0);
+  const res = await fetch("https://fastapi-production-cee9.up.railway.app/workout-stats");
+  const stats = await res.json();
 
-    // 3. Update the Line Chart
-    new Chart(document.getElementById('volumeChart'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Total Volume (kg)',
-          data: volumeData,
-          borderColor: '#c8ff00',
-          backgroundColor: 'rgba(200,255,0,0.05)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: chartDefaults
-    });
+  const labels = stats.map(s => s.week);
+  const volumes = stats.map(s => s.volume);
+
+  new Chart(document.getElementById('volumeChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{ data: volumes, borderColor: '#c8ff00', ... }]
+    },
+    ...
+  });
 
     // Note: You can repeat this mapping logic for your Bench, Squat, and Deadlift charts!
     
