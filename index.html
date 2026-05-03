@@ -769,6 +769,17 @@ function updateWizStep() {
   document.querySelectorAll('.wizard-step').forEach((s,i) => s.classList.toggle('active', i===wizStep));
   document.querySelectorAll('.prog-dot').forEach((d,i) => d.classList.toggle('on', i<=wizStep));
 }
+async function saveWorkoutSession(sessionData) {
+  const response = await apiFetch('/save-workout', {
+    method: 'POST',
+    body: JSON.stringify(sessionData)
+  });
+  
+  if (response?.status === "success") {
+    showToast("Workout Saved! Great work.");
+    loadToday(); // Refresh stats
+  }
+}
 
 async function saveGoalsAndLaunch() {
   const rows = document.querySelectorAll('.ex-row');
