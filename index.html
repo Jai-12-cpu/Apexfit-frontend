@@ -710,7 +710,7 @@ async function handleAuth() {
   const body = _authMode === 'login' ? { email, password } : { email, password, name };
   const res = await fetch(API + endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   btn.disabled = false; btn.textContent = _authMode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT';
-  if (!res.ok) { const d = await res.json().catch(()=>({}))); err.textContent = d.detail || 'Something went wrong'; err.style.display = 'block'; return; }
+  if (!res.ok) { const d = await res.json().catch(()=>({})); err.textContent = d.detail || 'Something went wrong'; err.style.display = 'block'; return; }
   onAuthSuccess(await res.json());
 }
 function handleGoogleAuth() {
