@@ -217,20 +217,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .ep{width:10px;height:3px;border-radius:2px;background:var(--s4)}
 .ep.on{background:var(--acid)}
 
-/* ─── AI CARD ─── */
-.ai-wrap{background:linear-gradient(135deg,rgba(212,255,0,.04),rgba(0,212,255,.03));border:1px solid rgba(212,255,0,.15);border-radius:var(--r);padding:20px;margin-bottom:20px;position:relative;overflow:hidden}
-.ai-wrap::after{content:'AI';position:absolute;top:12px;right:16px;font-family:var(--display);font-size:52px;font-weight:900;color:rgba(212,255,0,.04);pointer-events:none;letter-spacing:3px}
-.ai-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.ai-icon{width:28px;height:28px;border-radius:6px;background:rgba(212,255,0,.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ai-label{font-family:var(--mono);font-size:9px;color:var(--acid);letter-spacing:2px;text-transform:uppercase}
-.ai-body{font-size:13px;color:var(--t2);line-height:1.75}
-.ai-body strong{color:var(--t1)}
-.ai-refresh{background:rgba(212,255,0,.08);border:1px solid rgba(212,255,0,.18);border-radius:14px;padding:5px 12px;font-family:var(--mono);font-size:9px;color:var(--acid);cursor:pointer;letter-spacing:1px;margin-top:12px;display:inline-block;transition:all .2s}
-.ai-refresh:hover{background:rgba(212,255,0,.14)}
-.ai-dots{display:flex;gap:4px;align-items:center;padding:6px 0}
-.ai-d{width:5px;height:5px;border-radius:50%;background:var(--acid);animation:aip 1.2s infinite}
-.ai-d:nth-child(2){animation-delay:.2s}.ai-d:nth-child(3){animation-delay:.4s}
-@keyframes aip{0%,80%,100%{opacity:.15}40%{opacity:1}}
 
 /* ─── GOAL BANNER ─── */
 .goal-banner{background:rgba(212,255,0,.04);border:1px solid rgba(212,255,0,.12);border-radius:var(--r);padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -470,9 +456,7 @@ textarea.ta:focus{border-color:rgba(212,255,0,.35)}
       <div><div class="start-card-t">Ready to Train?</div><div class="start-card-s">Log every set in real time</div></div>
       <button class="start-btn" onclick="startWorkout()">⚡ START SESSION</button>
     </div>
-    <div id="ai-area">
-      <div class="ai-wrap"><div class="ai-hdr"><div class="ai-icon">🤖</div><div class="ai-label">AI Coach</div></div><div class="ai-dots"><div class="ai-d"></div><div class="ai-d"></div><div class="ai-d"></div></div></div>
-    </div>
+
     <div class="stats-row">
       <div class="stat-box c1"><div class="stat-v" style="color:var(--acid)" id="t-sessions">—</div><div class="stat-l">Sessions</div></div>
       <div class="stat-box c2"><div class="stat-v" style="color:var(--ice)" id="t-volume">—</div><div class="stat-l">Volume kg</div></div>
@@ -982,26 +966,6 @@ async function loadToday(){
     const tc={}; sess.forEach(s=>{const t=(s.session_type||'other').toLowerCase();tc[t]=(tc[t]||0)+1;});
     const tC={push:'#00d4ff',pull:'#ffb800',legs:'#ff3d5a',upper:'#8b5cf6',lower:'#8b5cf6',full:'#00e5a0',custom:'#8b5cf6',other:'#8b5cf6'};
     mkChart('type-chart',{type:'doughnut',data:{labels:Object.keys(tc),datasets:[{data:Object.values(tc),backgroundColor:Object.keys(tc).map(k=>tC[k]||'#8b5cf6'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'64%',plugins:{legend:{display:true,position:'bottom',labels:{color:'#7070a0',font:{family:'JetBrains Mono',size:8},boxWidth:7}}}}});
-  }
-  loadAI();
-}
-
-// ── AI ──
-async function loadAI(){
-  const ctx=await api('/ai/context');
-  const area=$('ai-area');
-  const gTxt=ctx?.goals?`Target muscles: ${ctx.goals.muscles?.join(', ')}. Exercises: ${ctx.goals.exercises?.map(e=>`${e.name} ${e.sets}x${e.reps}@${e.weight}kg`).join(', ')}.`:'No goals set.';
-  const rTxt=ctx?.recentSessions?.length?`Recent: ${ctx.recentSessions.map(s=>`${s.name}(${s.type},${s.volume}kg)`).join(';')}.`:'No recent sessions.';
-  const pTxt=ctx?.personalRecords?.length?`PRs: ${ctx.personalRecords.slice(0,5).map(p=>`${p.exercise} ${p.max_weight}kg`).join(',')}`:''
-  const prompt=`You are an expert personal trainer AI for ApexFit. Give a short punchy workout suggestion for today (2-3 sentences max). Be specific with exercises, sets, reps. Be energetic and direct.\n\n${gTxt}\n${rTxt}\n${pTxt}\n\nBold the workout name.`;
-  try{
-    const r=await api('/ai/chat',{method:'POST',body:JSON.stringify({prompt,max_tokens:500})});
-    const txt=r?.content?.map(c=>c.text||'').join('')||'';
-    const d=r;
-    const html=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-    area.innerHTML=`<div class="ai-wrap"><div class="ai-hdr"><div class="ai-icon">🤖</div><div class="ai-label">AI Coach</div></div><div class="ai-body">${html}</div><button class="ai-refresh" onclick="loadAI()">↻ NEW TIP</button></div>`;
-  }catch{
-    area.innerHTML=`<div class="ai-wrap"><div class="ai-hdr"><div class="ai-icon">🤖</div><div class="ai-label">AI Coach</div></div><div class="ai-body" style="color:var(--t3)">AI suggestions unavailable right now.</div></div>`;
   }
 }
 
