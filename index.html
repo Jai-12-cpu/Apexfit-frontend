@@ -302,6 +302,77 @@ textarea.ta:focus{border-color:rgba(212,255,0,.35)}
 .mini-ex-name{font-weight:600;font-size:13px;margin-bottom:3px}
 .mini-ex-sets{font-family:var(--mono);font-size:9px;color:var(--t2)}
 .mini-ex-muscle{display:inline-block;font-family:var(--mono);font-size:8px;margin-top:5px;padding:2px 7px;border-radius:6px;background:var(--s3);color:var(--t3)}
+
+/* ─── MOBILE ─── */
+@media(max-width:640px){
+  /* layout */
+  .view{padding:16px}
+  .hdr{padding:12px 16px}
+  .hdr-logo{font-size:18px;letter-spacing:4px}
+  .nav{padding:0 8px}
+  .nb{padding:11px 12px;font-size:9px;letter-spacing:1px}
+
+  /* stats grids → 2x2 */
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-v{font-size:26px}
+
+  /* two-col and three-col → single col */
+  .g2,.g3,.g75{grid-template-columns:1fr;gap:12px}
+
+  /* workout overlay */
+  .wo-top{padding:12px 16px}
+  .wo-body{padding:16px}
+  .wo-strip{grid-template-columns:1fr 1fr;gap:8px}
+  .wo-pill-v{font-size:20px}
+  .wo-name-display{font-size:16px;letter-spacing:3px}
+  .wo-finish{padding:8px 14px;font-size:13px}
+  .wo-discard{padding:8px 10px;font-size:9px}
+
+  /* set table — give inputs more room */
+  .set-tbl th,.sn{font-size:9px;padding:6px 6px}
+  .si{width:56px;padding:5px 4px;font-size:11px}
+  .si-cell{padding:6px 3px}
+  .ck-btn{width:26px;height:26px;font-size:11px}
+
+  /* exercise card */
+  .ex-card-hdr{flex-wrap:wrap;gap:6px}
+  .ex-muscle-inp{width:100%}
+
+  /* end modal */
+  .end-modal{padding:20px;width:calc(100vw - 32px)}
+  .end-stats{grid-template-columns:1fr 1fr}
+  .end-stat-v{font-size:22px}
+
+  /* photo grid → 2 cols */
+  .photo-grid{grid-template-columns:1fr 1fr}
+
+  /* leaderboard */
+  .lb-row{gap:8px}
+  .lb-vol{font-size:15px}
+
+  /* muscle grid in wizard → 2 cols */
+  .muscle-grid{grid-template-columns:repeat(2,1fr)}
+
+  /* wizard box */
+  .wiz-box{padding:24px 18px}
+  .wiz-h{font-size:24px}
+
+  /* goal/resume banners */
+  .goal-banner,.resume-banner{flex-direction:column;align-items:flex-start;gap:10px}
+  .goal-edit-btn,.resume-btn{width:100%;text-align:center}
+
+  /* start card */
+  .start-card{flex-direction:column;align-items:flex-start;gap:12px}
+  .start-btn{width:100%}
+
+  /* friend row */
+  .friend-row{flex-direction:column}
+  .friend-add-btn{width:100%}
+
+  /* header right side */
+  .hdr-r{gap:8px}
+  #hdr-count{display:none}
+}
 </style>
 </head>
 <body>
